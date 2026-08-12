@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+qa_experiment_run.log
+
+HomeWork/
+plans/

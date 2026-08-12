@@ -1,0 +1,5 @@
+openai
+pydantic
+python-dotenv
+transformers>=4.44
+torch
