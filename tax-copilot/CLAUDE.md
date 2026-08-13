@@ -37,3 +37,10 @@ python src\qa_experiment.py
 - אין remote/CI (local-only). S6 (Claude Code ב-CI) חסום עד שיוחלט על git remote.
 - איכות המודל המקומי חלשה (`bloomz-560m`, נבחר כי כבר מותקן, לא לאיכות) — לשקול מחדש לפני שימוש user-facing.
 - Scope נוכחי: שכירים בלבד. הרחבה לעצמאים היא החלטה עתידית, לא ברירת מחדל.
+
+## CODIFY log
+תיעוד כשלים אמיתיים שנתקלנו בהם בפועל, עם תאריך ונימוק לתיקון (חלק מ-PLAN→DELEGATE→ASSESS→CODIFY). ראו גם entry נוסף ב-`.claude/rules/hosted-llm-quota.md`.
+
+- **2026-08-12** — `gemini-2.0-flash` (שם מודל מתוארך) החזיר 404 באמצע עבודה על `hello_llm.py`. נימוק: Google מוציא משימוש dated snapshots בלי אזהרה מוקדמת ניכרת. תיקון: מעבר ל-alias לא מתוארך (`gemini-flash-lite-latest`) — כבר משוקף ב-Forbidden למעלה.
+- **2026-08-12** — הדפסת פלט עברי קרסה על Windows (ברירת המחדל cp1255 לא תומכת בכל התווים). נימוק: `sys.stdout` לא unicode כברירת מחדל בטרמינל Windows. תיקון: `sys.stdout.reconfigure(encoding="utf-8")` בתחילת כל סקריפט — כבר משוקף ב-Conventions.
+- **2026-08-12** — תשובת JSON/Pydantic מ-Gemini הגיעה עטופה ב-```` ``` ```` markdown fence וקרעה את `json.loads`, למרות בקשה מפורשת ל-"JSON בלבד" בפרומפט. נימוק: Gemini לא אמין ב-100% בציות להוראת "בלי fence". תיקון: קילוף fence לפני parse — כבר משוקף ב-Conventions.
