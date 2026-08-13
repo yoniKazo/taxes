@@ -37,6 +37,7 @@ python src\qa_experiment.py
 - אין remote/CI (local-only). S6 (Claude Code ב-CI) חסום עד שיוחלט על git remote.
 - איכות המודל המקומי חלשה (`bloomz-560m`, נבחר כי כבר מותקן, לא לאיכות) — לשקול מחדש לפני שימוש user-facing.
 - Scope נוכחי: שכירים בלבד. הרחבה לעצמאים היא החלטה עתידית, לא ברירת מחדל.
+- `src/tax_refund_calculator.py` מקשיח את מדרגות המס/אחוזי ביטוח לאומי/שווי נקודת זיכוי כקבועים בקוד (עם הערת מקור inline) — duplication מודע מול `data/tax_notes.md`, כי `.claude/rules/tax-data-sourcing.md` מוגבל ל-`paths: data/**/*.md` ולא חל על `.py`. אם `tax_notes.md` יתעדכן לשנת מס חדשה, הקבועים בקוד לא יתעדכנו אוטומטית.
 
 ## CODIFY log
 תיעוד כשלים אמיתיים שנתקלנו בהם בפועל, עם תאריך ונימוק לתיקון (חלק מ-PLAN→DELEGATE→ASSESS→CODIFY). ראו גם entry נוסף ב-`.claude/rules/hosted-llm-quota.md`.
