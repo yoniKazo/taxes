@@ -17,8 +17,8 @@ load_dotenv()
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DOC_PATH = os.path.join(SCRIPT_DIR, "..", "data", "tax_notes.md")
-DATASET_PATH = os.path.join(SCRIPT_DIR, "data", "tax_qa_dataset.md")
-OUTPUT_PATH = os.path.join(SCRIPT_DIR, "assignment_02.xlsx")
+DATASET_PATH = os.path.join(SCRIPT_DIR, "..", "assignment2", "data", "tax_qa_dataset.md")
+OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "assignment2", "assignment_02.xlsx")
 
 GEMINI_MODEL = "gemini-flash-lite-latest"
 

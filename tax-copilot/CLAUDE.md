@@ -26,10 +26,10 @@
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python hello_llm.py
-python file_qa.py data\tax_notes.md "שאלה"
-python local_llm.py
-python qa_experiment.py
+python src\hello_llm.py
+python src\file_qa.py data\tax_notes.md "שאלה"
+python src\local_llm.py
+python src\qa_experiment.py
 ```
 
 ## Open questions

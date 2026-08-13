@@ -24,7 +24,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 load_dotenv()
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_PATH = os.path.join(SCRIPT_DIR, "assignment_02.xlsx")
+OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "assignment2", "assignment_02.xlsx")
 
 JUDGE_MODEL = "gemini-3.1-flash-lite"  # different checkpoint than gemini-flash-lite-latest used in Task 2/4
 # Note: non-"lite" tiers (gemini-flash-latest -> gemini-3.6-flash, gemini-3.5-flash) are capped

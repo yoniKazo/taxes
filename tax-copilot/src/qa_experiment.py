@@ -25,7 +25,7 @@ GEMINI_MODEL = "gemini-flash-lite-latest"
 LOCAL_MODEL = local_llm.MODEL
 TEMPERATURES = [0, 0.5, 1]
 DOC_PATH = os.path.join(SCRIPT_DIR, "..", "data", "tax_notes.md")
-RESULTS_PATH = os.path.join(SCRIPT_DIR, "experiment_results.md")
+RESULTS_PATH = os.path.join(SCRIPT_DIR, "..", "assignment1", "experiment_results.md")
 LOCAL_CONTEXT_BUDGET = local_llm.CONTEXT_TOKEN_BUDGET
 
 client = OpenAI(

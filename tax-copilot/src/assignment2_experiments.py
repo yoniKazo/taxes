@@ -31,7 +31,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 load_dotenv()
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_PATH = os.path.join(SCRIPT_DIR, "assignment2_experiments.xlsx")
+OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "assignment2", "assignment2_experiments.xlsx")
 
 # Same 14 ids scored by hand in Task 3 -- required so the delta is meaningful.
 SAMPLE_IDS = [1, 3, 5, 7, 9, 11, 13, 16, 18, 20, 21, 22, 23, 24]
@@ -78,7 +78,7 @@ def main() -> None:
     all_questions = {q["id"]: q for q in load_questions()}
     questions = [all_questions[i] for i in SAMPLE_IDS]
 
-    baseline_path = os.path.join(SCRIPT_DIR, "assignment_02.xlsx")
+    baseline_path = os.path.join(SCRIPT_DIR, "..", "assignment2", "assignment_02.xlsx")
     baseline_df = pd.read_excel(baseline_path)
     baseline_df = baseline_df[baseline_df["id"].isin(SAMPLE_IDS)]
 
