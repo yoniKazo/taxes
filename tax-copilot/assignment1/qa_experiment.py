@@ -20,10 +20,12 @@ import local_llm
 sys.stdout.reconfigure(encoding="utf-8")
 load_dotenv()
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 GEMINI_MODEL = "gemini-flash-lite-latest"
 LOCAL_MODEL = local_llm.MODEL
 TEMPERATURES = [0, 0.5, 1]
-DOC_PATH = "data/tax_notes.md"
+DOC_PATH = os.path.join(SCRIPT_DIR, "..", "data", "tax_notes.md")
+RESULTS_PATH = os.path.join(SCRIPT_DIR, "experiment_results.md")
 LOCAL_CONTEXT_BUDGET = local_llm.CONTEXT_TOKEN_BUDGET
 
 client = OpenAI(
@@ -189,11 +191,11 @@ def write_results(rows: list[dict]) -> None:
             f"| {row['temperature']} | {answer_escaped} |"
         )
 
-    with open("experiment_results.md", "w", encoding="utf-8") as f:
+    with open(RESULTS_PATH, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 
 if __name__ == "__main__":
     results = run_experiment()
     write_results(results)
-    print(f"\nDone. {len(results)} rows written to experiment_results.md")
+    print(f"\nDone. {len(results)} rows written to {RESULTS_PATH}")

@@ -2,12 +2,14 @@
 
 פרויקט לקורס AI/LLM Engineering. הנושא (theme) שנבחר לכל הקורס: ייעוץ מס וחיסכון במס לשכיר ולעצמאי — ריפו זה יגדל בהדרגה עם כל מטלה.
 
+תוצרי כל מטלה יושבים בתיקייה נפרדת עם שם תואם (`assignment1/`, `assignment2/`, ...). `data/` בשורש הוא בסיס ידע משותף שממשיך לשמש מטלות עתידיות. כל הפקודות למטה מריצות מתוך שורש `tax-copilot/`.
+
 ## מטלה 1 — Your First LLM App
 
-- `hello_llm.py` — קריאה ל-LLM מתארח דרך ה-OpenAI-compatible endpoint: קריאה בסיסית, system prompt, temperature, פלט JSON מובנה.
-- `file_qa.py` — Q&A ממוסמך יחיד (`data/tax_notes.md`), עונה רק לפי המסמך ומצטט קטע תומך.
-- `local_llm.py` — הרצת מודל פתוח מקומי (`bigscience/bloomz-560m`) ללא API key.
-- `reflections.md` — תשובות לשאלות ההרהור.
+- `assignment1/hello_llm.py` — קריאה ל-LLM מתארח דרך ה-OpenAI-compatible endpoint: קריאה בסיסית, system prompt, temperature, פלט JSON מובנה.
+- `assignment1/file_qa.py` — Q&A ממוסמך יחיד (`data/tax_notes.md`), עונה רק לפי המסמך ומצטט קטע תומך.
+- `assignment1/local_llm.py` — הרצת מודל פתוח מקומי (`bigscience/bloomz-560m`) ללא API key.
+- `assignment1/reflections.md` — תשובות לשאלות ההרהור.
 
 **ספק ה-LLM המתארח:** Gemini (Google AI Studio), דרך ה-endpoint התואם-OpenAI שלו — הוחלף מ-Claude כי לא הייתה גישה לקונסולת Anthropic. אותו קוד בדיוק, רק `base_url`/`api_key`/`model` שונים — בדיוק הנקודה שהמטלה מבקשת להמחיש.
 
@@ -30,7 +32,8 @@ GEMINI_API_KEY=AIza...
 ## הרצה
 
 ```powershell
-python hello_llm.py
-python file_qa.py data\tax_notes.md "האם עצמאי חייב במקדמות מס?"
-python local_llm.py
+python assignment1\hello_llm.py
+python assignment1\file_qa.py data\tax_notes.md "האם עצמאי חייב במקדמות מס?"
+python assignment1\local_llm.py
+python assignment1\qa_experiment.py
 ```
