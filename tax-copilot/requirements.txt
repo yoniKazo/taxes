@@ -5,3 +5,7 @@ transformers>=4.44
 torch
 pandas
 openpyxl
+fastapi
+uvicorn
+pytest
+httpx

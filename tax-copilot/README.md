@@ -11,11 +11,15 @@
 - `src/local_llm.py` — הרצת מודל פתוח מקומי (`bigscience/bloomz-560m`) ללא API key.
 - `assignment1/reflections.md` — תשובות לשאלות ההרהור.
 
+> ה-Q&A המבוסס-מקור (`file_qa.py`) ניתן להרצה גם דרך קליינט הדפדפן (agent בשם `qa`, במסך "בדיקות AI") ולא רק כסקריפט CLI — ראו [קליינט דפדפן](#קליינט-דפדפן-react-fastapi) למטה.
+
 **ספק ה-LLM המתארח:** Gemini (Google AI Studio), דרך ה-endpoint התואם-OpenAI שלו — הוחלף מ-Claude כי לא הייתה גישה לקונסולת Anthropic. אותו קוד בדיוק, רק `base_url`/`api_key`/`model` שונים — בדיוק הנקודה שהמטלה מבקשת להמחיש.
 
 ## מטלה 2 — Evaluation-Driven Development
 
 grounded Q&A bot על `data/tax_notes.md`, עם רוברייק כתובה מראש, מחזור שיפור מבוסס-ממצאים, ו-LLM-as-judge מול הערכה אנושית.
+
+> **כל מחזור ההערכה הזה — רוברייק, דאטהסט, יצירה, ניקוד אנושי, judge והשוואת agreement — ניתן להרצה גם דרך קליינט הדפדפן** (מסך "בדיקות AI"), לא רק דרך הסקריפטים וה-`.xlsx` שמתוארים כאן. הרוברייק והדאטהסט למטה הם בדיוק מה שנטען אוטומטית ל-SQLite עם עליית ה-API (`seed_if_empty`) — זו אותה רוברייק, לא גרסה מקבילה. ראו [קליינט דפדפן](#קליינט-דפדפן-react-fastapi).
 
 - `assignment2/assignment2_rubric.md` — Task 1: הרוברייק (6 קריטריונים — Fluency/Grammar/Tone/Length/Grounding/Latency, pass bar, go/no-go rules), נכתבה **לפני** כל הרצה.
 - `assignment2/data/tax_qa_dataset.md` — 24 שאלות ב-3 קטגוריות (יש-במסמך / לא-קיים-כלל / מתחכמת).
@@ -28,6 +32,31 @@ grounded Q&A bot על `data/tax_notes.md`, עם רוברייק כתובה מרא
 ## מחשבון מס והחזר לשכיר
 
 `src/tax_refund_calculator.py` — כלי דטרמיניסטי (ללא LLM): מקבל שכר ברוטו חודשי + נקודות זיכוי, ומחזיר מס הכנסה, ביטוח לאומי/בריאות ונטו, כולל חיסכון מס אופציונלי מהפרשת פנסיה/קרן השתלמות ומזיכוי תרומה (סעיף 46). זו התכונה הראשונה שבאמת "מחשבת" ולא רק עונה על שאלות — נבנתה spec-first: `specs/tax-refund-calculator.md` (EARS + out-of-scope) לפני קוד.
+
+## קליינט דפדפן (React + FastAPI)
+
+מעל הכלים והסקריפטים שמתוארים למעלה יש עכשיו גם אפליקציית web מלאה — לא תחליף למטלות הממוספרות, אלא דרך נוספת (ויזואלית, אינטראקטיבית) להריץ את אותה עבודה ממש:
+
+- **`api/`** — שרת FastAPI. `POST /calculate` מפעיל את `tax_refund_calculator.calculate_multi_job` (כמה עבודות בו-זמנית, תיאום מס אמיתי — ראו `specs/tax-refund-calculator-multi-job.md`) ואת agent ה-`explainer` להסבר בעברית פשוטה. שאר ה-endpoints מפעילים את שכבת ה-Test Lab (ראו מטה). כל קריאת LLM — מהמחשבון וגם מה-Test Lab — נרשמת ב-SQLite (`api/data/tax_copilot.db`, לא נכנס לגיט): השאלה, איזה agent, איזה מודל/טמפרטורה, התשובה, ומיונים אם ניתנו.
+- **מסך "מחשבון"** — הזנת כמה עבודות + נקודות זיכוי/פנסיה/קרן השתלמות/תרומות, מקבלים מס+נטו מחושבים, ו"הסבר" בעברית פשוטה מ-agent ה-`explainer`.
+- **מסך "בדיקות AI"** — הגרסה האינטראקטיבית של מטלה 2 (ראו שם למעלה): רוברייק ניתנת לצפייה ועריכה (עריכה יוצרת גרסה חדשה, לא דורסת ישנה), רשימת 24 השאלות ניתנת לצפייה/הוספה/מחיקה, הרצה חדשה מאפשרת לבחור agent (`qa` — פורט של `file_qa.py`), **טמפרטורה** ו**פרומפט מערכת** חופשיים (ניסוי חי, לא רק בקוד), ניקוד ידני per-קריטריון בלחיצת כפתור, הפעלת judge (agent נפרד, מודל אחר לצמצום self-enhancement bias — כמו ב-`assignment2_judge.py`), ופאנל agreement שמראה בדיוק את אותו סוג ניתוח מ-`assignment2_writeup.md` (איפה מסכימים, איפה לא, ולמה).
+
+### הרצה
+
+שני שרתים, שני טרמינלים, שניהם משורש `tax-copilot/`:
+
+```powershell
+# טרמינל 1 — API (יוצר/מזרע את ה-DB אוטומטית בעליה הראשונה)
+.venv\Scripts\activate
+uvicorn api.main:app --reload --port 8000
+
+# טרמינל 2 — קליינט
+cd web
+npm install   # פעם ראשונה בלבד
+npm run dev
+```
+
+ואז פותחים `http://localhost:5173`. ה-API חייב GEMINI_API_KEY מאותו `.env` שמתואר למטה (המחשבון וה-`qa`/`judge` agents קוראים לו בדיוק כמו הסקריפטים).
 
 ## נתונים (`data/`)
 
@@ -46,7 +75,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-הגדרת מפתח API (ל-`hello_llm.py` ו-`file_qa.py` בלבד — `local_llm.py` לא צריך מפתח). מפתח Gemini מתקבל ב-[aistudio.google.com](https://aistudio.google.com) → Get API key.
+הגדרת מפתח API (לכל סקריפט שקורא ל-Gemini — `hello_llm.py`, `file_qa.py`, סקריפטי מטלה 2, וגם שרת ה-`api/` — `local_llm.py` בלבד לא צריך מפתח, כי הוא רץ מודל מקומי). מפתח Gemini מתקבל ב-[aistudio.google.com](https://aistudio.google.com) → Get API key.
 
 המפתח נשמר מקומית בקובץ `.env` (לא נכנס לגיט — כלול ב-`.gitignore`) ונטען אוטומטית ב-`load_dotenv()`. פשוט פתחו את `.env` והדביקו את המפתח:
 

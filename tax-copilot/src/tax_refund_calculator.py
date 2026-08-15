@@ -129,6 +129,56 @@ def calculate(
     )
 
 
+@dataclass(frozen=True)
+class JobInput:
+    gross_salary: float
+    label: str = ""
+
+
+@dataclass(frozen=True)
+class MultiJobTaxResult:
+    combined_gross: float
+    job_count: int
+    jobs: tuple[JobInput, ...]
+    result: TaxResult
+
+
+def _validate_jobs(jobs: list[JobInput]) -> None:
+    if not jobs:
+        raise InvalidInputError("יש לספק לפחות עבודה אחת.")
+    for job in jobs:
+        if not isinstance(job.gross_salary, (int, float)) or job.gross_salary <= 0:
+            raise InvalidInputError("שכר ברוטו חייב להיות מספר חיובי.")
+
+
+def calculate_multi_job(
+    jobs: list[JobInput],
+    gender: str,
+    extra_credit_points: float = 0.0,
+    pension_employee_pct: float = 0.0,
+    keren_hishtalmut_monthly: float = 0.0,
+    annual_donation: float = 0.0,
+) -> MultiJobTaxResult:
+    _validate_jobs(jobs)
+
+    combined_gross = sum(job.gross_salary for job in jobs)
+    result = calculate(
+        combined_gross,
+        gender,
+        extra_credit_points=extra_credit_points,
+        pension_employee_pct=pension_employee_pct,
+        keren_hishtalmut_monthly=keren_hishtalmut_monthly,
+        annual_donation=annual_donation,
+    )
+
+    return MultiJobTaxResult(
+        combined_gross=combined_gross,
+        job_count=len(jobs),
+        jobs=tuple(jobs),
+        result=result,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="מחשבון מס והחזר לשכיר (2026, שכירים בלבד)")
     parser.add_argument("gross_salary", type=float)

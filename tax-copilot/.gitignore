@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .env
 qa_experiment_run.log
+api/data/*.db
+web/node_modules/
+web/dist/
+web/.env
