@@ -111,13 +111,6 @@ def get_rubric_criteria(conn: sqlite3.Connection, rubric_id: int) -> list[sqlite
     ).fetchall()
 
 
-def get_rubric_go_no_go(conn: sqlite3.Connection, rubric_id: int) -> dict[str, sqlite3.Row]:
-    rows = conn.execute(
-        "SELECT * FROM rubric_go_no_go WHERE rubric_id = ?", (rubric_id,)
-    ).fetchall()
-    return {row["criterion"]: row for row in rows}
-
-
 def go_no_go_list(conn: sqlite3.Connection, rubric_id: int) -> list[dict]:
     """scoring.compute_final_score()'s expected go_no_go param shape."""
     rows = conn.execute(
@@ -137,7 +130,7 @@ def build_rubric_dict(conn: sqlite3.Connection, rubric_row: sqlite3.Row) -> dict
     """GET/PUT /rubrics/active response shape -- go/no-go merged into each
     criterion object even though it's a separate table in the DB."""
     criteria = get_rubric_criteria(conn, rubric_row["id"])
-    go_no_go = get_rubric_go_no_go(conn, rubric_row["id"])
+    go_no_go = {row["criterion"]: row for row in go_no_go_list(conn, rubric_row["id"])}
     criteria_out = []
     for c in criteria:
         gng = go_no_go.get(c["name"])
@@ -178,12 +171,31 @@ def build_rubric_text(criteria_rows: list[sqlite3.Row]) -> str:
     return "\n".join(lines)
 
 
-def find_question_by_text(conn: sqlite3.Connection, question_text: str) -> sqlite3.Row | None:
-    """llm_calls has no question_id FK -- llm_calls.question is logged as the
-    verbatim question_text sent (see routes/test_runs.py), so this text match
-    is the only available way to recover which test_questions row an llm_calls
-    row corresponds to."""
-    return conn.execute(
-        "SELECT * FROM test_questions WHERE question_text = ? LIMIT 1",
-        (question_text,),
-    ).fetchone()
+def questions_by_text(conn: sqlite3.Connection, texts: list[str]) -> dict[str, sqlite3.Row]:
+    """Batch form of matching llm_calls.question (verbatim question_text sent,
+    see routes/test_runs.py) back to its test_questions row -- llm_calls has
+    no question_id FK, so text match is the only available linkage."""
+    if not texts:
+        return {}
+    placeholders = ",".join("?" * len(texts))
+    rows = conn.execute(
+        f"SELECT * FROM test_questions WHERE question_text IN ({placeholders})",
+        texts,
+    ).fetchall()
+    return {row["question_text"]: row for row in rows}
+
+
+def ratings_by_call(conn: sqlite3.Connection, call_ids: list[int]) -> dict[int, list[sqlite3.Row]]:
+    """All ratings rows for a batch of llm_call_ids, grouped by llm_call_id --
+    avoids one query per call when building results for a whole test run."""
+    if not call_ids:
+        return {}
+    placeholders = ",".join("?" * len(call_ids))
+    rows = conn.execute(
+        f"SELECT * FROM ratings WHERE llm_call_id IN ({placeholders})",
+        call_ids,
+    ).fetchall()
+    out: dict[int, list[sqlite3.Row]] = {call_id: [] for call_id in call_ids}
+    for row in rows:
+        out[row["llm_call_id"]].append(row)
+    return out

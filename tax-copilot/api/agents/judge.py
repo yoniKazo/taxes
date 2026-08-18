@@ -1,17 +1,8 @@
 """Agent: judge -- applies a rubric to a qa answer, grounded in the same
-document, returning explanation+verdict per criterion.
-
-Direct port of src/assignment2_judge.py's JudgeOutput schema and
-system-prompt structure, EXCEPT the rubric text is a parameter built by the
-caller from DB rubric_criteria rows (RUBRIC_TEXT there was a hardcoded
-module constant; here it's `rubric_text`, a function argument) -- so editing
-the rubric via the UI's RubricPanel actually changes what the judge applies.
-
-Latency is never sent to the judge -- callers derive its rating
-programmatically from latency_ms, same as assignment2_judge.py's
-latency_rating()/compute_final_score(); that logic lives in api/scoring.py,
-not here.
-"""
+document, returning explanation+verdict per criterion. rubric_text is passed
+in by the caller (from DB rubric_criteria rows), so editing the rubric via
+RubricPanel changes what the judge applies. Latency is rated programmatically
+elsewhere (api/scoring.py), never sent to the judge."""
 
 from dataclasses import dataclass
 from typing import Literal
@@ -67,19 +58,9 @@ def judge_answer(
     model: str | None = None,
     temperature: float | None = None,
 ) -> JudgeResult:
-    """document/question/answer describe the qa call being judged (the
-    "graded" llm_calls row); rubric_text is the active rubric's criteria
-    text, built by the caller from DB rows.
-
-    model/temperature are required-but-nullable pass-throughs like the other
-    two agents; per plan decision, /test-runs/{id}/judge in v1 doesn't
-    actually override them (always the judge agent's DB defaults), but the
-    parameters exist for consistency/future use.
-
-    system_prompt is NOT a parameter here -- it's always built from the
-    fixed judge persona + the passed-in rubric_text, so callers can't
-    accidentally bypass the rubric.
-    """
+    """document/question/answer describe the qa call being judged; rubric_text
+    is the active rubric's criteria text. No system_prompt param -- it's
+    always built from the fixed judge persona + rubric_text."""
     system_prompt = _build_system_prompt(rubric_text)
     user_content = f"מסמך:\n{document}\n\nשאלה: {question}\n\nתשובת הבוט להערכה: {answer}"
     result = call_structured(

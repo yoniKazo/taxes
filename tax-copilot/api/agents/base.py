@@ -1,25 +1,4 @@
-"""Shared Gemini client helper for api/agents/* (explainer.py, qa.py, judge.py).
-
-Client setup, retry/backoff, code-fence stripping, and latency/token
-measurement live here once instead of being duplicated three times -- see
-plan section 4 ("שכבת Agents"). Two entry points:
-
-- call_text()       -- free-text completions (explainer.py, qa.py).
-- call_structured()  -- Pydantic-validated completions (judge.py).
-
-Follows the connection pattern from src/hello_llm.py (OpenAI-compatible
-client against Gemini's endpoint) and the fence-stripping/retry patterns
-from src/assignment2_judge.py, adapted per .claude/rules/hosted-llm-quota.md.
-
-Note on retry sizing: both entry points here serve a single live/interactive
-request (one explainer call, one qa call, one judge call), not a batch loop
-over many rows like assignment2_judge.py's full_run(). So retries are short
-and capped (2 extra attempts, seconds-scale backoff) rather than reusing that
-script's 5-attempt/15s-sleep batch pattern verbatim -- a live API request
-needs to stay responsive. Any batch-level throttling across *multiple*
-questions (e.g. a Test Lab run looping over question_ids) is the caller's
-responsibility, per hosted-llm-quota.md.
-"""
+"""Shared Gemini client helper for api/agents/* (explainer.py, qa.py, judge.py)."""
 
 import json
 import os
@@ -98,7 +77,7 @@ def call_text(
             latency_ms = (time.perf_counter() - start) * 1000
             usage = response.usage
             return TextCallResult(
-                text=response.choices[0].message.content,
+                text=response.choices[0].message.content or "",
                 latency_ms=latency_ms,
                 input_tokens=usage.prompt_tokens if usage else 0,
                 output_tokens=usage.completion_tokens if usage else 0,
@@ -151,7 +130,7 @@ def call_structured(
                 temperature=temperature,
             )
             latency_ms = (time.perf_counter() - start) * 1000
-            raw = strip_code_fence(response.choices[0].message.content.strip())
+            raw = strip_code_fence((response.choices[0].message.content or "").strip())
             parsed = response_model.model_validate_json(raw)
             usage = response.usage
             return StructuredCallResult(

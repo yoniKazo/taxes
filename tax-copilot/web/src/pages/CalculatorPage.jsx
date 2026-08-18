@@ -19,12 +19,14 @@ const INITIAL_SHARED_FIELDS = {
 function buildPayload(jobs, sharedFields) {
   return {
     jobs: jobs.map((job) => ({
-      gross_salary: Number(job.gross_salary) || 0,
+      // המשתמש מזין שכר שנתי; calculate() מצפה לשכר ברוטו חודשי.
+      gross_salary: (Number(job.gross_salary) || 0) / 12,
       label: job.label,
     })),
     gender: sharedFields.gender,
     extra_credit_points: Number(sharedFields.extra_credit_points) || 0,
-    pension_employee_pct: Number(sharedFields.pension_employee_pct) || 0,
+    // השדה מוצג באחוזים (0-100); calculate() מצפה לשבר (0-1).
+    pension_employee_pct: (Number(sharedFields.pension_employee_pct) || 0) / 100,
     keren_hishtalmut_monthly: Number(sharedFields.keren_hishtalmut_monthly) || 0,
     annual_donation: Number(sharedFields.annual_donation) || 0,
     include_explanation: true,

@@ -60,47 +60,41 @@ def calculate_endpoint(
     if payload.include_explanation:
         context = _build_context(payload, multi)
         agent_row = get_agent(conn, "explainer")
-        # explainer agent is seeded at startup -- if it's genuinely missing this
-        # is a setup bug, not a user input error, so degrade gracefully same as
-        # an LLM failure rather than 500ing the whole calculation response.
-        if agent_row is None:
-            explanation_error = "סוכן ההסבר אינו מוגדר במערכת."
-        else:
-            model, system_prompt, temperature = resolve_overrides(agent_row, None, None, None)
-            try:
-                explain_result = explainer.explain(
-                    context, model=model, system_prompt=system_prompt, temperature=temperature
-                )
-                explanation = explain_result.text
-                log_llm_call(
-                    conn,
-                    agent_name="explainer",
-                    model=model,
-                    temperature=temperature,
-                    system_prompt=system_prompt,
-                    question=context,
-                    response=explanation,
-                    latency_ms=explain_result.latency_ms,
-                    input_tokens=explain_result.input_tokens,
-                    output_tokens=explain_result.output_tokens,
-                    source="live",
-                )
-            except AgentCallError as e:
-                explanation_error = "לא ניתן היה להפיק הסבר כרגע. תוצאות החישוב עדיין תקפות."
-                log_llm_call(
-                    conn,
-                    agent_name="explainer",
-                    model=model,
-                    temperature=temperature,
-                    system_prompt=system_prompt,
-                    question=context,
-                    response=None,
-                    latency_ms=None,
-                    input_tokens=None,
-                    output_tokens=None,
-                    source="live",
-                    error=str(e),
-                )
+        model, system_prompt, temperature = resolve_overrides(agent_row, None, None, None)
+        try:
+            explain_result = explainer.explain(
+                context, model=model, system_prompt=system_prompt, temperature=temperature
+            )
+            explanation = explain_result.text
+            log_llm_call(
+                conn,
+                agent_name="explainer",
+                model=model,
+                temperature=temperature,
+                system_prompt=system_prompt,
+                question=context,
+                response=explanation,
+                latency_ms=explain_result.latency_ms,
+                input_tokens=explain_result.input_tokens,
+                output_tokens=explain_result.output_tokens,
+                source="live",
+            )
+        except AgentCallError as e:
+            explanation_error = "לא ניתן היה להפיק הסבר כרגע. תוצאות החישוב עדיין תקפות."
+            log_llm_call(
+                conn,
+                agent_name="explainer",
+                model=model,
+                temperature=temperature,
+                system_prompt=system_prompt,
+                question=context,
+                response=None,
+                latency_ms=None,
+                input_tokens=None,
+                output_tokens=None,
+                source="live",
+                error=str(e),
+            )
 
     return CalculateResponse(
         combined_gross=multi.combined_gross,

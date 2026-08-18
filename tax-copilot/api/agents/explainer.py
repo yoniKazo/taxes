@@ -1,8 +1,5 @@
-"""Agent: explainer -- explains a computed tax result in plain Hebrew.
-
-Used by POST /calculate (per plan decision #3, always with the agent's DB
-defaults there -- overrides only ever flow through the Test Lab).
-"""
+"""Agent: explainer -- explains a computed tax result in plain Hebrew. Used by
+POST /calculate."""
 
 from dataclasses import dataclass
 
@@ -27,20 +24,9 @@ def explain(
     system_prompt: str | None = None,
     temperature: float | None = None,
 ) -> ExplainResult:
-    """context is a pre-built Hebrew string describing a computed tax result
-    (combined gross, job count, tax before/after credit, national insurance,
-    health tax, net, pension/keren-hishtalmut savings, donation credit) --
-    the caller builds it, this function just sends it.
-
-    model/system_prompt/temperature are required-but-nullable pass-throughs:
-    resolving None to the explainer agent's DB-stored defaults is the
-    caller's job (the `agents` table), not this function's -- it does not
-    hardcode any defaults itself.
-
-    Output is deliberately free text, not JSON: it sidesteps the
-    fence-stripping/parse-failure mode entirely, unlike hello_llm.py's
-    structured-output habit.
-    """
+    """context is the pre-built Hebrew description of a computed tax result;
+    caller resolves None model/system_prompt/temperature to the explainer
+    agent's DB defaults."""
     result = call_text(
         model=model,
         system_prompt=system_prompt,

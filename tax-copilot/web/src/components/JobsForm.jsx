@@ -23,7 +23,7 @@ export default function JobsForm({ jobs, onChange }) {
       {jobs.map((job, index) => (
         <div className="field-grid" key={index}>
           <div>
-            <label htmlFor={`job-salary-${index}`}>שכר ברוטו חודשי</label>
+            <label htmlFor={`job-salary-${index}`}>שכר ברוטו שנתי</label>
             <input
               id={`job-salary-${index}`}
               type="number"

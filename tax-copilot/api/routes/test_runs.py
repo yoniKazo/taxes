@@ -7,7 +7,7 @@ schema.sql) -- only llm_calls.question (the verbatim question text sent).
 This module always logs that field as the bare test_questions.question_text
 (never the full document-wrapped prompt qa.answer() builds internally), so
 GET /test-runs/{id} can recover question_id via a text match
-(_common.find_question_by_text). See that helper's docstring.
+(_common.questions_by_text). See that helper's docstring.
 
 Note on agent_name scope (plan section "Context"/decision #5): the Test Lab
 v1 dataset (tax_qa_v1) is question-answering, so POST /test-runs always
@@ -29,7 +29,6 @@ from api.agents import judge as judge_agent_module
 from api.agents.base import AgentCallError
 from api.routes._common import (
     build_rubric_text,
-    find_question_by_text,
     get_agent,
     get_db,
     get_rubric_criteria,
@@ -37,6 +36,8 @@ from api.routes._common import (
     load_tax_notes,
     log_llm_call,
     now_iso,
+    questions_by_text,
+    ratings_by_call,
     resolve_overrides,
 )
 from api.schemas import (
@@ -111,11 +112,13 @@ def _ratings_for_call(conn: sqlite3.Connection, llm_call_id: int, rater: str) ->
     ).fetchall()
 
 
-def _build_result_item(conn: sqlite3.Connection, call_row: sqlite3.Row) -> TestRunResultItem:
-    question_row = find_question_by_text(conn, call_row["question"])
-
-    human_rows = _ratings_for_call(conn, call_row["id"], "human")
-    judge_rows = _ratings_for_call(conn, call_row["id"], "judge")
+def _build_result_item(
+    call_row: sqlite3.Row,
+    question_row: sqlite3.Row | None,
+    call_ratings: list[sqlite3.Row],
+) -> TestRunResultItem:
+    human_rows = [r for r in call_ratings if r["rater"] == "human"]
+    judge_rows = [r for r in call_ratings if r["rater"] == "judge"]
 
     human_ratings = {r["criterion"]: r["verdict"] for r in human_rows if r["criterion"] is not None}
     human_final_score = next((r["verdict"] for r in human_rows if r["criterion"] is None), None)
@@ -145,7 +148,13 @@ def _build_result_item(conn: sqlite3.Connection, call_row: sqlite3.Row) -> TestR
 
 def _build_test_run_detail(conn: sqlite3.Connection, run_id: int) -> TestRunDetail:
     run = _get_test_run(conn, run_id)
-    results = [_build_result_item(conn, row) for row in _run_llm_calls(conn, run)]
+    calls = _run_llm_calls(conn, run)
+    ratings = ratings_by_call(conn, [call["id"] for call in calls])
+    questions = questions_by_text(conn, [call["question"] for call in calls])
+    results = [
+        _build_result_item(call, questions.get(call["question"]), ratings[call["id"]])
+        for call in calls
+    ]
     return TestRunDetail(
         id=run["id"],
         created_at=run["created_at"],
@@ -251,18 +260,14 @@ def list_test_runs(conn: sqlite3.Connection = Depends(get_db)) -> list[TestRunLi
     out = []
     for run in runs:
         calls = _run_llm_calls(conn, run)
+        ratings = ratings_by_call(conn, [call["id"] for call in calls])
         scored = 0
         passed = 0
         for call in calls:
-            judge_score = conn.execute(
-                "SELECT verdict FROM ratings WHERE llm_call_id = ? AND rater = 'judge' AND criterion IS NULL",
-                (call["id"],),
-            ).fetchone()
-            human_score = conn.execute(
-                "SELECT verdict FROM ratings WHERE llm_call_id = ? AND rater = 'human' AND criterion IS NULL",
-                (call["id"],),
-            ).fetchone()
-            final = judge_score["verdict"] if judge_score else (human_score["verdict"] if human_score else None)
+            final_rows = [r for r in ratings[call["id"]] if r["criterion"] is None]
+            judge_score = next((r["verdict"] for r in final_rows if r["rater"] == "judge"), None)
+            human_score = next((r["verdict"] for r in final_rows if r["rater"] == "human"), None)
+            final = judge_score if judge_score is not None else human_score
             if final is not None:
                 scored += 1
                 if final == "pass":
@@ -343,8 +348,6 @@ def run_judge(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> dict:
     run = _get_test_run(conn, run_id)
 
     judge_row = get_agent(conn, "judge")
-    if judge_row is None:
-        raise HTTPException(status_code=404, detail='agent "judge" לא נמצא.')
 
     criteria_rows = get_rubric_criteria(conn, run["rubric_id"])
     rubric_row = conn.execute("SELECT * FROM rubrics WHERE id = ?", (run["rubric_id"],)).fetchone()
@@ -456,19 +459,22 @@ def run_judge(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> dict:
 def get_agreement(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> AgreementResponse:
     run = _get_test_run(conn, run_id)
     calls = _run_llm_calls(conn, run)
+    ratings = ratings_by_call(conn, [call["id"] for call in calls])
+    questions = questions_by_text(conn, [call["question"] for call in calls])
 
     per_criterion_totals: dict[str, dict[str, int]] = {}
     disagreements: list[Disagreement] = []
 
     for call in calls:
-        human_rows = [r for r in _ratings_for_call(conn, call["id"], "human") if r["criterion"] is not None]
-        judge_rows = [r for r in _ratings_for_call(conn, call["id"], "judge") if r["criterion"] is not None]
+        call_ratings = ratings[call["id"]]
+        human_rows = [r for r in call_ratings if r["rater"] == "human" and r["criterion"] is not None]
+        judge_rows = [r for r in call_ratings if r["rater"] == "judge" and r["criterion"] is not None]
         human_ratings = {r["criterion"]: r["verdict"] for r in human_rows}
         judge_ratings = {r["criterion"]: r["verdict"] for r in judge_rows}
         judge_explanations = {r["criterion"]: (r["explanation"] or "") for r in judge_rows}
 
         agreement = compute_agreement(human_ratings, judge_ratings)
-        question_row = find_question_by_text(conn, call["question"])
+        question_row = questions.get(call["question"])
         question_text = question_row["question_text"] if question_row else call["question"]
 
         for criterion, info in agreement["per_criterion"].items():

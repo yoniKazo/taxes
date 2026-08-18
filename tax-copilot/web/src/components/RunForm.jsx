@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { createTestRun } from '../api/client.js';
 
+// v1 של ה-Test Lab תמיד מריץ answer() של ה-agent "qa" (ראו docstring
+// api/routes/test_runs.py) -- agent_name אחר יגרום לרשומות judge/explainer
+// להיכתב תחת אותו agent_name ולהתנגש עם רשומות ה-bookkeeping הפנימיות.
+const RUNNABLE_AGENT_NAMES = new Set(['qa']);
+
 export default function RunForm({ agents, questions, onRunCreated }) {
+  const runnableAgents = agents.filter((agent) => RUNNABLE_AGENT_NAMES.has(agent.name));
   const [agentName, setAgentName] = useState('');
   const [temperature, setTemperature] = useState(0.7);
   const [systemPrompt, setSystemPrompt] = useState('');
@@ -21,12 +27,11 @@ export default function RunForm({ agents, questions, onRunCreated }) {
   }, [questions]);
 
   useEffect(() => {
-    if (!agentInitialized.current && agents.length > 0) {
-      const defaultAgent = agents.find((agent) => agent.name === 'qa') || agents[0];
-      applyAgentDefaults(defaultAgent);
+    if (!agentInitialized.current && runnableAgents.length > 0) {
+      applyAgentDefaults(runnableAgents[0]);
       agentInitialized.current = true;
     }
-  }, [agents]);
+  }, [runnableAgents]);
 
   function applyAgentDefaults(agent) {
     if (!agent) {
@@ -38,7 +43,7 @@ export default function RunForm({ agents, questions, onRunCreated }) {
   }
 
   function handleAgentChange(name) {
-    const agent = agents.find((candidate) => candidate.name === name);
+    const agent = runnableAgents.find((candidate) => candidate.name === name);
     applyAgentDefaults(agent);
   }
 
@@ -96,7 +101,7 @@ export default function RunForm({ agents, questions, onRunCreated }) {
             value={agentName}
             onChange={(event) => handleAgentChange(event.target.value)}
           >
-            {agents.map((agent) => (
+            {runnableAgents.map((agent) => (
               <option key={agent.name} value={agent.name}>
                 {agent.name}
               </option>

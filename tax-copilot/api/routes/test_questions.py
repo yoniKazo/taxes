@@ -51,6 +51,9 @@ def create_test_question(
 def delete_test_question(
     question_id: int, conn: sqlite3.Connection = Depends(get_db)
 ) -> Response:
-    conn.execute("DELETE FROM test_questions WHERE id = ?", (question_id,))
+    # Soft delete -- keeps the row so questions_by_text can still recover
+    # question_id for llm_calls rows logged against this question in past
+    # test runs; is_active=0 just excludes it from future runs' checklists.
+    conn.execute("UPDATE test_questions SET is_active = 0 WHERE id = ?", (question_id,))
     conn.commit()
     return Response(status_code=204)
