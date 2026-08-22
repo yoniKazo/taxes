@@ -1,0 +1,37 @@
+﻿python.exe : Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher 
+rate limits and faster downloads.
+At line:1 char:366
++ ... S="ignore"; & C:\Repo\Taxes\tax-copilot\.venv\Scripts\python.exe assi ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Warning: You ar...ster downloads.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+=== sweep: top_k ===
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 4084.25it/s]
+  k=3                              hit@k=0.906  easy=0.964  hard=0.500
+  k=5                              hit@k=0.969  easy=1.000  hard=0.750
+  k=8                              hit@k=1.000  easy=1.000  hard=1.000
+  k=10                             hit@k=1.000  easy=1.000  hard=1.000
+
+=== sweep: chunk_size ===
+  500/100                          hit@k=0.938  easy=0.929  hard=1.000
+  1000/150                         hit@k=0.969  easy=1.000  hard=0.750
+  1500/200                         hit@k=0.938  easy=0.964  hard=0.750
+
+=== sweep: embedding_model ===
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights:  29%|██▉       | 58/199 [00:00<00:00, 421.43it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 923.29it/s]
+  intfloat/multilingual-e5-small   hit@k=0.969  easy=1.000  hard=0.750
+  BAAI/bge-small-en-v1.5           hit@k=0.719  easy=0.750  hard=0.500
+
+=== sweep: hybrid_bm25 ===
+  dense=0.3                        hit@k=0.938  easy=0.929  hard=1.000
+  dense=0.5                        hit@k=0.938  easy=0.964  hard=0.750
+  dense=0.7                        hit@k=0.969  easy=1.000  hard=0.750
+
+C:\Repo\Taxes\tax-copilot\src\..\assignment3\data\task6_sweeps.csv

@@ -9,3 +9,10 @@ fastapi
 uvicorn
 pytest
 httpx
+langchain
+langchain-community
+langchain-huggingface
+sentence-transformers
+faiss-cpu
+pypdf
+rank_bm25

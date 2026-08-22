@@ -1,16 +1,67 @@
-# React + Vite
+# Tax Copilot — קליינט
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite, עברית ו-RTL. שלושה מסכים מעל ה-API של FastAPI:
 
-Currently, two official plugins are available:
+| נתיב | מה יש שם | מטלה |
+|---|---|---|
+| `/calculator` | מחשבון החזר מס לשכירים + הסבר מילולי מ-LLM | 1 |
+| `/lab` | רוברייק, הרצות, דירוג אנושי מול judge | 2 |
+| `/rag` | אחזור, בחירת צ'אנקים, תשובה מעוגנת, וכל מדדי ההערכה | 3 |
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## הרצה
 
-## React Compiler
+הקליינט לא עומד לבד — הוא מדבר עם ה-API.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```powershell
+# טרמינל 1 — מתיקיית tax-copilot
+uvicorn api.main:app --reload --port 8000
 
-## Expanding the Oxlint configuration
+# טרמינל 2
+cd web
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+ואז `http://localhost:5173`.
+
+- כתובת ה-API נלקחת מ-`VITE_API_BASE_URL` (ברירת מחדל `http://localhost:8000`). ראו `.env.example`.
+- ה-CORS בשרת מרשה **רק** את `localhost:5173` / `127.0.0.1:5173` — אם משנים את הפורט, לעדכן גם את `api/main.py`.
+
+```powershell
+npm run lint     # oxlint
+npm run build    # בדיקת קומפילציה מלאה
+```
+
+## מה עולה קריאות LLM
+
+המכסה החינמית של Gemini היא 15 בקשות לדקה ו-500 ליום, והיא כבר נשרפה פעם אחת. לכן
+כל כפתור שעולה כסף מסומן ב-UI בתגית עלות, ובראש מסך ה-RAG יש מונה קריאות יומי.
+
+| פעולה | עלות |
+|---|---|
+| אחזור, דפדוף בצ'אנקים, תצוגה מקדימה, בניית אינדקס, מדידת hit@k | **0** — הכל מקומי |
+| כל טבלאות ההערכה של מטלה 3 | **0** — נקראות מקבצי התוצאה שעל הדיסק |
+| "ענה מהקטעים שנבחרו" | 1 |
+| "הפעל שופטים" (שורה בודדת) | 3–4 |
+| הרצת טסט-לאב | קריאה אחת לשאלה |
+| judge על ריצה | ~4 קריאות לשורה |
+
+הרצה של כל מערך ההערכה (~204 קריאות) **לא נחשפת ב-UI** בכוונה — היא נשארת ב-CLI,
+שם יש לה checkpointing והמשכיות.
+
+## מוסכמות
+
+- **מחרוזות בעברית inline, מזהי קוד באנגלית** — אין שכבת i18n.
+- **CSS logical properties בלבד** (`margin-block-end`, `padding-inline`, `text-align: start`).
+  `left`/`right` פיזיים ישברו את ה-RTL, והבאג יופיע רק בעברית.
+- **טוקנים ב-`src/styles/tokens.css`** — אין הקשחה של צבע בקומפוננטה. ערכת נושא כהה
+  מוגדרת פעמיים בכוונה: תחת `prefers-color-scheme` (הגדרת המערכת) ותחת
+  `[data-theme="dark"]` (המתג באפליקציה), אחרת המתג לא מנצח את ההעדפה של מערכת ההפעלה.
+- **`@tanstack/react-query` מחזיק את מצב השרת** — אין שלשות `data/loading/error` ידניות,
+  והמעבר בין טאבים לא מוחק את מה שכבר נטען.
+- **פעולות ארוכות רצות כ-job** עם `useJob` — פס התקדמות אמיתי וכפתור ביטול, לא כפתור מושבת.
+- **פאנלים**: כל מסך בנוי מ-`<Panel>` שאפשר לקפל או להסתיר, והבחירה נשמרת ב-localStorage
+  לכל מסך בנפרד (`usePanelPrefs`). כפתור "פאנלים" בראש המסך פותח את הרשימה.
+- **צבעי גרפים** מגיעים מ-`src/components/ui/chartTokens.js` ומאומתים מול בדיקות
+  colorblind-safety. גרף תמיד מלווה בטבלת הנתונים שלו — זו לא כפילות אלא מה שמאפשר
+  לקרוא את הסדרה שהניגודיות שלה נמוכה.

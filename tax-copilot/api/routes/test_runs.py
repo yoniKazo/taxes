@@ -24,9 +24,11 @@ import time
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api import jobs
 from api.agents import qa
 from api.agents import judge as judge_agent_module
 from api.agents.base import AgentCallError
+from api.db.connection import get_connection
 from api.routes._common import (
     build_rubric_text,
     get_agent,
@@ -168,10 +170,31 @@ def _build_test_run_detail(conn: sqlite3.Connection, run_id: int) -> TestRunDeta
     )
 
 
+def _noop_report(phase: str, done: int, total: int) -> None:
+    pass
+
+
+def _never_cancel() -> bool:
+    return False
+
+
 @router.post("/test-runs", response_model=TestRunDetail)
 def create_test_run(
     payload: TestRunRequest, conn: sqlite3.Connection = Depends(get_db)
 ) -> TestRunDetail:
+    """Blocking path, unchanged: returns only once every question has run."""
+    return _create_test_run(payload, conn, _noop_report, _never_cancel)
+
+
+def _create_test_run(
+    payload: TestRunRequest,
+    conn: sqlite3.Connection,
+    report,
+    should_cancel,
+) -> TestRunDetail:
+    """The actual work. Kept out of the route so the job worker can call it with
+    a real progress reporter -- the route signature stays free of parameters
+    FastAPI would otherwise try to bind from the query string."""
     agent_row = get_agent(conn, payload.agent_name)
     if agent_row is None:
         raise HTTPException(status_code=404, detail=f'agent "{payload.agent_name}" לא נמצא.')
@@ -203,7 +226,11 @@ def create_test_run(
         ).fetchall()
     } if payload.question_ids else {}
 
+    total = len(payload.question_ids)
     for i, question_id in enumerate(payload.question_ids):
+        if should_cancel():
+            break
+        report("מריץ שאלות", i, total)
         question_row = questions.get(question_id)
         if question_row is None:
             continue  # question was deleted since the client loaded the list
@@ -251,6 +278,7 @@ def create_test_run(
                 error=str(e),
             )
 
+    report("מריץ שאלות", total, total)
     return _build_test_run_detail(conn, run_id)
 
 
@@ -345,6 +373,11 @@ def submit_rating(
 
 @router.post("/test-runs/{run_id}/judge")
 def run_judge(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> dict:
+    """Blocking path, unchanged."""
+    return _run_judge(run_id, conn, _noop_report, _never_cancel)
+
+
+def _run_judge(run_id: int, conn: sqlite3.Connection, report, should_cancel) -> dict:
     run = _get_test_run(conn, run_id)
 
     judge_row = get_agent(conn, "judge")
@@ -369,7 +402,11 @@ def run_judge(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> dict:
     ]
 
     judged_count = 0
+    total = len(to_judge)
     for i, call_row in enumerate(to_judge):
+        if should_cancel():
+            break
+        report("שופט תשובות", i, total)
         if i > 0:
             time.sleep(THROTTLE_SECONDS)
 
@@ -452,6 +489,7 @@ def run_judge(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> dict:
         conn.commit()
         judged_count += 1
 
+    report("שופט תשובות", total, total)
     return {"status": "ok", "judged_count": judged_count}
 
 
@@ -504,3 +542,72 @@ def get_agreement(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> Ag
     ]
 
     return AgreementResponse(per_criterion=per_criterion, disagreements=disagreements)
+
+
+# --- Async variants -----------------------------------------------------------
+#
+# Both operations below are minutes long: a run is one throttled LLM call per
+# question, and judging is four per answered row. Behind the blocking endpoints
+# the UI can only show a disabled button for that entire time, with no progress,
+# no estimate and no way out. These wrappers run the SAME functions on the job
+# worker so the client can poll for "12 of 28" and cancel.
+#
+# The blocking endpoints stay exactly as they were -- this is additive.
+
+
+def _with_own_connection(fn):
+    """The request connection is closed when the request returns, long before a
+    job finishes, so work on the worker thread opens its own."""
+    def run(report, should_cancel):
+        conn = get_connection()
+        try:
+            return fn(conn, report, should_cancel)
+        finally:
+            conn.close()
+    return run
+
+
+@router.post("/test-runs/async")
+def create_test_run_async(
+    payload: TestRunRequest, conn: sqlite3.Connection = Depends(get_db)
+) -> dict:
+    # Validated on the request thread so a bad agent name or a missing rubric is
+    # still a 404 the form can show, rather than a job that fails a second later.
+    if get_agent(conn, payload.agent_name) is None:
+        raise HTTPException(status_code=404, detail=f'agent "{payload.agent_name}" לא נמצא.')
+    if conn.execute("SELECT id FROM rubrics WHERE is_active = 1").fetchone() is None:
+        raise HTTPException(status_code=404, detail="לא נמצאה רוברייק פעילה.")
+
+    def work(job_conn, report, should_cancel):
+        detail = _create_test_run(payload, job_conn, report, should_cancel)
+        return {"run_id": detail.id}
+
+    return jobs.submit("test_run", _with_own_connection(work)).to_dict()
+
+
+@router.post("/test-runs/{run_id}/judge/async")
+def run_judge_async(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> dict:
+    _get_test_run(conn, run_id)
+
+    def work(job_conn, report, should_cancel):
+        # _run_judge only picks up calls with no judge final_score yet, so a
+        # cancelled job resumes where it stopped instead of paying twice.
+        return _run_judge(run_id, job_conn, report, should_cancel)
+
+    return jobs.submit("judge", _with_own_connection(work)).to_dict()
+
+
+@router.get("/jobs/{job_id}")
+def get_test_run_job(job_id: str) -> dict:
+    job = jobs.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="המשימה לא נמצאה (ייתכן שהשרת הופעל מחדש).")
+    return job.to_dict()
+
+
+@router.post("/jobs/{job_id}/cancel")
+def cancel_test_run_job(job_id: str) -> dict:
+    job = jobs.cancel(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="המשימה לא נמצאה.")
+    return job.to_dict()

@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 
 from api.db.connection import get_connection, init_db
 from api.db.seed import seed_if_empty
-from api.routes import agents, calculate, rubrics, test_questions, test_runs
+from api.routes import agents, calculate, rag, rubrics, test_questions, test_runs
 from src.tax_refund_calculator import InvalidInputError
 
 app = FastAPI(title="Tax Copilot API")
@@ -46,3 +46,4 @@ app.include_router(agents.router)
 app.include_router(rubrics.router)
 app.include_router(test_questions.router)
 app.include_router(test_runs.router)
+app.include_router(rag.router)

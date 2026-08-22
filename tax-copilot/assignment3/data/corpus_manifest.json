@@ -1,0 +1,44 @@
+[
+  {
+    "doc_name": "employees-tax-guide",
+    "path": "TaxData/employees/employees-tax-guide.md",
+    "format": "md",
+    "topic": "employees",
+    "source_url": "https://www.gov.il/BlobFolder/generalpage/income-tax-monthly-deductions-booklet/he/generalInformation_income-tax-monthly-deductions-booklet_monthly-deductions-booklet-2026.pdf"
+  },
+  {
+    "doc_name": "self-employed-tax-guide",
+    "path": "TaxData/self-employed/self-employed-tax-guide.md",
+    "format": "md",
+    "topic": "self-employed",
+    "source_url": "https://www.btl.gov.il/Insurance/National%20Insurance/type_list/Self_Employed/Pages/rates.aspx"
+  },
+  {
+    "doc_name": "capital-markets-tax-guide",
+    "path": "TaxData/capital-markets/capital-markets-tax-guide.md",
+    "format": "md",
+    "topic": "capital-markets",
+    "source_url": "https://www.gov.il/BlobFolder/policy/inst-05-2025/he/IncomeTax_inst-05-2025.pdf"
+  },
+  {
+    "doc_name": "real-estate-tax-guide",
+    "path": "TaxData/real-estate/real-estate-tax-guide.md",
+    "format": "md",
+    "topic": "real-estate",
+    "source_url": "https://www.gov.il/BlobFolder/policy/inst-01-2026/he/realestate_inst-01-2026.pdf"
+  },
+  {
+    "doc_name": "general-tax-guide",
+    "path": "TaxData/general/general-tax-guide.md",
+    "format": "md",
+    "topic": "general",
+    "source_url": "https://www.taxes.gov.il/"
+  },
+  {
+    "doc_name": "income-tax-deductions-booklet-2026",
+    "path": "TaxData/employees/income-tax-deductions-booklet-2026.pdf",
+    "format": "pdf",
+    "topic": "employees",
+    "source_url": "https://www.gov.il/BlobFolder/generalpage/income-tax-monthly-deductions-booklet/he/generalInformation_income-tax-monthly-deductions-booklet_monthly-deductions-booklet-2026.pdf"
+  }
+]

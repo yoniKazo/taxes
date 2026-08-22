@@ -1,0 +1,13 @@
+﻿sweep,setting,hit_at_k,hit_at_k_any_doc,hit_at_k_easy,hit_at_k_hard,n,n_chunks
+top_k,k=3,0.906,0.969,0.964,0.5,32,
+top_k,k=5,0.969,1.0,1.0,0.75,32,
+top_k,k=8,1.0,1.0,1.0,1.0,32,
+top_k,k=10,1.0,1.0,1.0,1.0,32,
+chunk_size,500/100,0.938,0.938,0.929,1.0,32,306.0
+chunk_size,1000/150,0.969,1.0,1.0,0.75,32,151.0
+chunk_size,1500/200,0.938,0.969,0.964,0.75,32,105.0
+embedding_model,intfloat/multilingual-e5-small,0.969,1.0,1.0,0.75,32,
+embedding_model,BAAI/bge-small-en-v1.5,0.719,0.719,0.75,0.5,32,
+hybrid_bm25,dense=0.3,0.938,0.938,0.929,1.0,32,
+hybrid_bm25,dense=0.5,0.938,0.969,0.964,0.75,32,
+hybrid_bm25,dense=0.7,0.969,1.0,1.0,0.75,32,
