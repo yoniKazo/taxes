@@ -1,0 +1,7 @@
+{
+  "name": "tax-copilot-toolkit",
+  "displayName": "Tax Copilot Toolkit",
+  "version": "0.1.0",
+  "description": "Packages tax-copilot's checklist command, LLM-script skill, groundedness-review agent, and safety hooks as one installable unit.",
+  "author": { "name": "Yoni Kazokin" }
+}

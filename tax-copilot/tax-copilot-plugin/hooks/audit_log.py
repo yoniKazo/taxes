@@ -1,0 +1,56 @@
+"""PostToolUse hook: appends one JSONL audit entry per file-affecting call.
+
+Never blocks — always exits 0, even if logging itself fails, so a broken
+audit trail can't stop real work.
+
+Write/Edit always log. Bash only logs when the command contains a
+write-signal token (heuristic, not proof — see CLAUDE.md note); this
+keeps read-only noise like `git status`/`ls` out of the trail while still
+catching `python ...`, `> file`, `tee`, `mv`, `cp`, `rm`, which this
+project uses to touch files outside the Write/Edit tools.
+"""
+import json
+import re
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+LOG_PATH = Path(__file__).resolve().parent / "audit.jsonl"
+
+_BASH_WRITE_SIGNAL_RE = re.compile(
+    r"(^|\s)(python3?|mv|cp|rm|tee)\b|>>?|\btee\b"
+)
+
+
+def main() -> int:
+    try:
+        payload = json.load(sys.stdin)
+        tool_name = payload.get("tool_name", "")
+        tool_input = payload.get("tool_input", {}) or {}
+
+        if tool_name == "Bash":
+            command = tool_input.get("command", "") or ""
+            if not _BASH_WRITE_SIGNAL_RE.search(command):
+                return 0
+            entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "path": None,
+                "tool": tool_name,
+                "command": command[:200],
+            }
+        else:
+            entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "path": tool_input.get("file_path", ""),
+                "tool": tool_name,
+            }
+
+        with LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
