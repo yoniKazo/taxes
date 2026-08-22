@@ -25,7 +25,7 @@ These change something that persists after the session ends — the working tree
 
 Every rule above has a mechanical twin: the `.env` rules are enforced by both `.claude/hooks/block_env_leak.py` (which inspects the actual command/file text and exits 2) and the `deny` list in `.claude/settings.json` (which blocks by permission pattern before the tool even runs); `rm -rf*` and the `assignment3/index/**` writes are `deny`-only. A FORBIDDEN line with no matching `deny` entry or hook check is not a real rule — it's a sentence a model might not read twice.
 
-**Not in this list on purpose:** "never swap the measurement instrument (judge model, metric, judge prompt) mid-experiment," which is Forbidden #1 in `CLAUDE.md`. There's no mechanical way to detect "this edit changes a judge's behavior" versus any other code edit, so it stays a convention enforced by review, not a rule enforced by a hook. Listing it here would fail this document's own consistency test.
+**Not in this list on purpose:** "never swap the measurement instrument (judge model, metric, judge prompt) mid-experiment," which is Forbidden #5 in `CLAUDE.md`. There's no mechanical way to detect "this edit changes a judge's behavior" versus any other code edit, so it stays a convention enforced by review, not a rule enforced by a hook. Listing it here would fail this document's own consistency test.
 
 ## Escalation rule
 
