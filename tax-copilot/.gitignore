@@ -9,3 +9,5 @@ web/dist/
 web/.env
 assignment3/index_custom/
 .claude/settings.local.json
+graphify-out/.graphify_python
+graphify-out/.graphify_root
