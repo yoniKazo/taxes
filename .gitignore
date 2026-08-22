@@ -5,4 +5,5 @@ __pycache__/
 qa_experiment_run.log
 
 HomeWork/
-plans/
+/plans/
+.claude/settings.local.json
