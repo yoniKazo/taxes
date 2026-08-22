@@ -16,3 +16,4 @@ sentence-transformers
 faiss-cpu
 pypdf
 rank_bm25
+mcp
