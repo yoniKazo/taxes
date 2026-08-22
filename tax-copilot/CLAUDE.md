@@ -23,7 +23,7 @@
 - `python-dotenv` טוען `GEMINI_API_KEY` מ-`.env` (בgitignore).
 - RAG מלא קיים מ-assignment3: FAISS + `RecursiveCharacterTextSplitter(1000/150)` + embeddings מקומיים, מעל 6 מסמכים ב-`TaxData/` (5 md + PDF רשמי). **`TaxData/` יושב מחוץ ל-`tax-copilot/`, ברמת הריפו** — הנתיבים ב-`assignment3/data/corpus_manifest.json` יחסיים לשורש הריפו ולא לתיקיית הפרויקט; המניפסט הוא נקודת הכניסה היחידה לקורפוס, וקובץ שנוסף ל-`TaxData/` בלי עדכון שלו פשוט לא יאונדקס. ראו `src/build_index.py`, `src/rag_pipeline.py`. `file_qa.py` נשאר כפי שהוא — single-doc grounding, התוצר של מטלה 1.
 - **מודל embedding: `intfloat/multilingual-e5-small`, לא bge-small-en.** קורפוס עברי — מודל אנגלי-בלבד נותן hit@k של 0.719 מול 0.969 (נמדד על 32 שאלות). prefix conventions שונים לכל מודל ומרוכזים ב-`src/embeddings.py`.
-- **RAG ב-UI** (`/rag` בקליינט): `api/rag/` מפוצל לפי **עלות**, לא לפי נושא — `artifacts.py` (קבצי תוצאה), `retrieval.py` (אינדוקס/אחזור/hit-rate) ו-`generation.py` (תשובה + שופטים). רק השלישי יכול לשרוף מכסה, ולכן שני הראשונים נבדקים ב-pytest בלי `GEMINI_API_KEY` ובלי רשת. `api/jobs.py` מריץ את הפעולות הארוכות (בניית אינדקס, hit@k, הרצת טסט-לאב, שיפוט) עם התקדמות וביטול.
+- **RAG ב-UI** (`/rag` בקליינט): `api/rag/`, `api/jobs.py`. ראו [`api/CLAUDE.md`](api/CLAUDE.md) לפירוט (פיצול לפי עלות, תיקוני CODIFY על ציוני דמיון, lazy client).
 - **`assignment3/index/` לקריאה בלבד.** זה האינדקס הקנוני שכל סקריפטי המטלה טוענים. בנייה מה-UI כותבת ל-`assignment3/index_custom/<slug>/` (בgitignore), ו-`DELETE /rag/indexes/default` מוחזר כ-400.
 
 ## Command cheatsheet
