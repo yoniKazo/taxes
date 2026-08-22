@@ -27,7 +27,9 @@
       "Bash(Get-Content .env*)",
       "Bash(git add .env*)",
       "Bash(git add -f .env*)",
-      "Bash(rm -rf*)"
+      "Bash(rm -rf*)",
+      "Write(assignment3/index/**)",
+      "Edit(assignment3/index/**)"
     ]
   },
   "hooks": {
