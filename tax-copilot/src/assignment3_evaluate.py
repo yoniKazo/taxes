@@ -15,8 +15,9 @@ import pandas as pd
 
 from assignment3_build_eval_set import load_eval_set
 from assignment3_run_rag import load_rag_results
-from judges import (VERDICT_SCORE, judge_answer_relevance, judge_context_relevance,
-                    judge_correctness, judge_faithfulness, refusal_correctness)
+from judges import (JUDGE_VERSION, VERDICT_SCORE, judge_answer_relevance,
+                    judge_context_relevance, judge_correctness, judge_faithfulness,
+                    refusal_correctness)
 from llm import throttle
 from retrieval_eval import hit_rate_row
 
@@ -67,6 +68,7 @@ def judge_rag_row(row: pd.Series) -> dict:
     ]:
         out[f"rag_{name}"] = verdict.verdict
         out[f"rag_{name}_explanation"] = verdict.explanation
+    out["judge_version"] = JUDGE_VERSION
     return out
 
 
@@ -80,6 +82,7 @@ def judge_baseline_row(row: pd.Series) -> dict:
         out[f"baseline_{name}_explanation"] = verdict.explanation
     out["baseline_context_relevance"] = "N/A"
     out["baseline_faithfulness"] = "N/A"
+    out["judge_version"] = JUDGE_VERSION
     return out
 
 

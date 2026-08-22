@@ -10,6 +10,7 @@ schema, and `explanation` BEFORE `verdict` so the model reasons before ruling
 instead of rationalising a verdict it already emitted.
 """
 
+import hashlib
 import sys
 from typing import Literal
 
@@ -102,6 +103,25 @@ def judge_correctness(question: str, answer: str, reference_answer: str) -> Crit
         CORRECTNESS_PROMPT,
         f"שאלה: {question}\n\nתשובת ייחוס:\n{reference_answer}\n\nתשובת המערכת:\n{answer}",
     )
+
+
+def _compute_judge_version(
+    prompts: tuple[str, ...] = (
+        CONTEXT_RELEVANCE_PROMPT,
+        FAITHFULNESS_PROMPT,
+        ANSWER_RELEVANCE_PROMPT,
+        CORRECTNESS_PROMPT,
+    ),
+) -> str:
+    """Derived, not hand-bumped: editing a judge prompt changes this value
+    automatically, so there's no version number to remember to update.
+    `prompts` defaults to the four real prompts but takes any tuple, which is
+    what makes this testable without monkeypatching module globals."""
+    joined = "\x00".join(prompts)
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()[:8]
+
+
+JUDGE_VERSION = _compute_judge_version()
 
 
 def refusal_correctness(answerable: bool, answered: bool) -> str:
