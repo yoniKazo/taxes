@@ -110,6 +110,8 @@ npm run dev
 
 לצד המטלות הממוספרות, הריפו הזה בונה בהדרגה שכבת `.claude/` (CLAUDE.md, rules, skills, agents, specs, hooks) לפי checklist נפרד. מצב מלא ומנומק — כולל מה דולג ולמה — ב-`IMPLEMENTATION.md`.
 
+CI (`.github/workflows/claude.yml`) מריץ `pytest` על כל PR שנוגע ב-`tax-copilot/**`.
+
 ## סטאפ
 
 ```powershell

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "tax_corpus": {
+      "command": "python",
+      "args": ["mcp_servers/tax_corpus.py"]
+    }
+  }
+}
