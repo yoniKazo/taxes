@@ -1,4 +1,6 @@
 openai
+anthropic
+truststore
 pydantic
 python-dotenv
 transformers>=4.44
