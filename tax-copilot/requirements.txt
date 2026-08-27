@@ -19,3 +19,6 @@ faiss-cpu
 pypdf
 rank_bm25
 mcp
+langgraph
+langchain-anthropic
+langchain-google-genai

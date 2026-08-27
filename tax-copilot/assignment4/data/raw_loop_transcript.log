@@ -1,0 +1,38 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+### משימה: לשכיר עם משכורת 20,000 ₪ לחודש (גבר, ללא נקודות זיכוי נוספות) ולעצמאי עם אותה הכנסה חודשית — למי דמי הביטוח הלאומי ומס הבריאות גבוהים יותר בחודש, ובכמה?
+
+--- צעד 0 (stop_reason=tool_use) ---
+TextBlock(citations=None, text='אני צריך לקבל מידע על הבדלים בדמי ביטוח לאומי ומס בריאות בין שכיר לעצמאי. בואו נחפש את הנתונים הרלוונטיים.', type='text')
+ToolUseBlock(id='toolu_01PAXLhSvim47XpQqtXWY6yL', caller=DirectCaller(type='direct'), input={'query': 'דמי ביטוח לאומי שכיר', 'k': 5}, name='search_tax_corpus', type='tool_use', toolset_name=None)
+ToolUseBlock(id='toolu_01Pi5YAftdNVYtukC2C5JBRv', caller=DirectCaller(type='direct'), input={'query': 'דמי ביטוח לאומי עצמאי', 'k': 5}, name='search_tax_corpus', type='tool_use', toolset_name=None)
+ToolUseBlock(id='toolu_01E3TBq19EdPFyRwenxhbaJe', caller=DirectCaller(type='direct'), input={'query': 'מס בריאות שכיר עצמאי', 'k': 5}, name='search_tax_corpus', type='tool_use', toolset_name=None)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights:  58%|#####7    | 115/199 [00:00<00:00, 1133.41it/s]Loading weights: 100%|##########| 199/199 [00:00<00:00, 1108.80it/s]
+
+--- צעד 1 (stop_reason=tool_use) ---
+TextBlock(citations=None, text='מעולה! קיבלתי את המידע. עכשיו בואו נחשב את התוצאות:\n\n**עבור השכיר (משכורת 20,000 ₪ לחודש):**\n- הכנסה בטווח 7,704–51,910 ₪, לכן:\n  - ביטוח לאומי: 14.6%* (רכיב כולל)\n  - מס בריאות: 5.17%\n- סה"כ ניכוי משכר העובד: **12.17%** (זה מנוכה בפועל מהעובד)\n\n**עבור העצמאי (הכנסה 20,000 ₪ לחודש):**\n- הכנסה בטווח 7,704–51,910 ₪, לכן:\n  - ביטוח לאומי: 12.83%\n  - מס בריאות: 5.17%\n- סה"כ: **18%**\n\nכעת בואו נחשב את ההפרש:', type='text')
+ToolUseBlock(id='toolu_01P6wjwqbP7GaNyTy2WdoimT', caller=DirectCaller(type='direct'), input={'expression': '20000 * 0.1217'}, name='calculator', type='tool_use', toolset_name=None)
+ToolUseBlock(id='toolu_01M7c9RqPiGTHZKjgCFARieD', caller=DirectCaller(type='direct'), input={'expression': '20000 * 0.18'}, name='calculator', type='tool_use', toolset_name=None)
+
+--- צעד 2 (stop_reason=tool_use) ---
+TextBlock(citations=None, text='כעת נחשב את ההפרש:', type='text')
+ToolUseBlock(id='toolu_017ied6JiwFxG1YEMo2t3Cz4', caller=DirectCaller(type='direct'), input={'expression': '3600 - 2434'}, name='calculator', type='tool_use', toolset_name=None)
+
+--- צעד 3 (stop_reason=end_turn) ---
+TextBlock(citations=None, text='## תשובה:\n\n**העצמאי** משלם דמי ביטוח לאומי ומס בריאות גבוהים יותר בחודש.\n\n### פירוט:\n\n| | ביטוח לאומי + בריאות | חודשי ב-20,000 ₪ |\n|---|---|---|\n| **שכיר** | 12.17% | 2,434 ₪ |\n| **עצמאי** | 18% | 3,600 ₪ |\n| **הפרש** | 5.83% | **1,166 ₪** |\n\n**העצמאי משלם 1,166 ₪ יותר בחודש** מהשכיר על אותה הכנסה של 20,000 ₪.\n\n**הסיבה:** השכיר משלם רק את חלקו הוא (12.17%), בעוד שהעצמאי משלם גם את חלקו וגם את חלק "המעסיק" בדמי הביטוח (סה"כ 18%), כיוון שהוא עצמו "מעסיקו".', type='text')
+
+=== תשובה סופית ===
+## תשובה:
+
+**העצמאי** משלם דמי ביטוח לאומי ומס בריאות גבוהים יותר בחודש.
+
+### פירוט:
+
+| | ביטוח לאומי + בריאות | חודשי ב-20,000 ₪ |
+|---|---|---|
+| **שכיר** | 12.17% | 2,434 ₪ |
+| **עצמאי** | 18% | 3,600 ₪ |
+| **הפרש** | 5.83% | **1,166 ₪** |
+
+**העצמאי משלם 1,166 ₪ יותר בחודש** מהשכיר על אותה הכנסה של 20,000 ₪.
+
+**הסיבה:** השכיר משלם רק את חלקו הוא (12.17%), בעוד שהעצמאי משלם גם את חלקו וגם את חלק "המעסיק" בדמי הביטוח (סה"כ 18%), כיוון שהוא עצמו "מעסיקו".

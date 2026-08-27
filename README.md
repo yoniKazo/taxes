@@ -1,3 +1,13 @@
+---
+title: Tax Copilot
+emoji: 🧾
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Taxes
 
 Monorepo root (`github.com/yoniKazo/taxes.git`). **`tax-copilot/` is the project root for the "Agentic Engineering" course, Part 2** — the 27-artifact submission described below lives there, not here.

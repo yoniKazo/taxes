@@ -671,6 +671,35 @@ td.num, th.num { text-align: end; font-variant-numeric: tabular-nums; }
   font-weight: 600;
 }
 
+/* --- ProcessExplainer: collapsible non-technical "how this works" box --- */
+
+.panel-note.explainer { margin-block-end: var(--space-3); padding: var(--space-2) var(--space-3); }
+
+.explainer-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: var(--space-2);
+  border: 0;
+  background: transparent;
+  padding: var(--space-1) 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: inherit;
+}
+
+.explainer-body {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+.explainer-body dt { color: var(--info-fg); font-weight: 600; white-space: nowrap; }
+.explainer-body dd { margin: 0; }
+
 .divider { height: 1px; background-color: var(--border); margin-block: var(--space-4); }
 
 .pill-group { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }

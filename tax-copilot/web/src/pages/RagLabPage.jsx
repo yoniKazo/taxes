@@ -26,6 +26,8 @@ import RetrievePanel from '../components/rag/RetrievePanel.jsx';
 import SweepsPanel from '../components/rag/SweepsPanel.jsx';
 import Panel from '../components/ui/Panel.jsx';
 import PanelPicker from '../components/ui/PanelPicker.jsx';
+import ProcessExplainer from '../components/ui/ProcessExplainer.jsx';
+import { RAG_EXPLAINERS } from '../constants/ragExplainers.js';
 import { usePanelPrefs } from '../hooks/usePanelPrefs.js';
 
 // Panels the page can show. `defaultVisible: false` keeps the first load about
@@ -250,6 +252,7 @@ export default function RagLabPage() {
             icon={Search}
             {...panelProps('retrieve')}
           >
+            <ProcessExplainer id="rag-retrieve" {...RAG_EXPLAINERS.retrieve} />
             <RetrievePanel
               query={query}
               onQueryChange={(value) => setParam({ q: value })}
@@ -288,6 +291,7 @@ export default function RagLabPage() {
           icon={Sparkles}
           {...panelProps('answer')}
         >
+          <ProcessExplainer id="rag-answer" {...RAG_EXPLAINERS.answer} />
           <GroundedAnswerPanel
             answer={answerMutation.data}
             isPending={answerMutation.isPending}
@@ -316,6 +320,7 @@ export default function RagLabPage() {
           loading={indexes.isPending}
           error={indexes.error?.message}
         >
+          <ProcessExplainer id="rag-index" {...RAG_EXPLAINERS.index} />
           <IndexConfigPanel
             indexes={indexes.data?.indexes ?? []}
             activeIndexId={indexId}
@@ -344,6 +349,7 @@ export default function RagLabPage() {
           loading={corpus.isPending}
           error={corpus.error?.message}
         >
+          <ProcessExplainer id="rag-corpus" {...RAG_EXPLAINERS.corpus} />
           <CorpusPanel
             data={corpus.data}
             selectedDocs={effectiveDocs}
@@ -364,6 +370,7 @@ export default function RagLabPage() {
           icon={FileSearch}
           {...panelProps('chunks')}
         >
+          <ProcessExplainer id="rag-chunks" {...RAG_EXPLAINERS.chunks} />
           <ChunkBrowserPanel indexId={indexId} documents={corpus.data?.documents ?? []} />
         </Panel>
       ) : null}
@@ -377,6 +384,7 @@ export default function RagLabPage() {
           loading={evalSet.isPending}
           error={evalSet.error?.message}
         >
+          <ProcessExplainer id="rag-evalset" {...RAG_EXPLAINERS.evalset} />
           <EvalSetPanel data={evalSet.data} onUseQuestion={useEvalQuestion} />
         </Panel>
       ) : null}
@@ -390,6 +398,7 @@ export default function RagLabPage() {
           loading={baseline.isPending}
           error={baseline.error?.message}
         >
+          <ProcessExplainer id="rag-baseline" {...RAG_EXPLAINERS.baseline} />
           <BaselinePanel data={baseline.data} />
         </Panel>
       ) : null}
@@ -402,6 +411,7 @@ export default function RagLabPage() {
           loading={metrics.isPending}
           error={metrics.error?.message}
         >
+          <ProcessExplainer id="rag-metrics" {...RAG_EXPLAINERS.metrics} />
           <MetricsPanel data={metrics.data} />
         </Panel>
       ) : null}
@@ -415,6 +425,7 @@ export default function RagLabPage() {
           loading={perQuestion.isPending}
           error={perQuestion.error?.message}
         >
+          <ProcessExplainer id="rag-perquestion" {...RAG_EXPLAINERS.perquestion} />
           <PerQuestionPanel data={perQuestion.data} />
         </Panel>
       ) : null}
@@ -428,6 +439,7 @@ export default function RagLabPage() {
           loading={sweeps.isPending}
           error={sweeps.error?.message}
         >
+          <ProcessExplainer id="rag-sweeps" {...RAG_EXPLAINERS.sweeps} />
           <SweepsPanel data={sweeps.data} liveResult={liveHitRate} />
         </Panel>
       ) : null}
@@ -440,6 +452,7 @@ export default function RagLabPage() {
           loading={experiments.isPending}
           error={experiments.error?.message}
         >
+          <ProcessExplainer id="rag-experiments" {...RAG_EXPLAINERS.experiments} />
           <ExperimentsPanel data={experiments.data} />
         </Panel>
       ) : null}
@@ -453,6 +466,7 @@ export default function RagLabPage() {
           loading={analysis.isPending}
           error={analysis.error?.message}
         >
+          <ProcessExplainer id="rag-analysis" {...RAG_EXPLAINERS.analysis} />
           <AnalysisPanel data={analysis.data} />
         </Panel>
       ) : null}

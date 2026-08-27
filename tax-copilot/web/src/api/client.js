@@ -101,8 +101,8 @@ export function submitRating(llmCallId, payload) {
   return request(`/llm-calls/${llmCallId}/ratings`, { method: 'POST', body: payload });
 }
 
-export function runJudge(testRunId) {
-  return request(`/test-runs/${testRunId}/judge`, { method: 'POST' });
+export function runJudge(testRunId, model) {
+  return request(`/test-runs/${testRunId}/judge`, { method: 'POST', body: { model } });
 }
 
 // Job-based variants: same work, but pollable and cancellable. A run is one
@@ -112,8 +112,8 @@ export function createTestRunAsync(payload) {
   return request('/test-runs/async', { method: 'POST', body: payload });
 }
 
-export function runJudgeAsync(testRunId) {
-  return request(`/test-runs/${testRunId}/judge/async`, { method: 'POST' });
+export function runJudgeAsync(testRunId, model) {
+  return request(`/test-runs/${testRunId}/judge/async`, { method: 'POST', body: { model } });
 }
 
 export function getAgreement(testRunId) {
@@ -212,4 +212,51 @@ export function answerWithRag(payload) {
 /** Costs 4 LLM calls (~20s at the throttle floor). */
 export function judgeRagAnswer(payload) {
   return request('/rag/judge', { method: 'POST', body: payload, timeoutMs: LLM_TIMEOUT_MS });
+}
+
+// --- Agent Lab (מטלה 4) ---
+//
+// שם נפרד בכוונה מ-listAgents/getActiveRubric למעלה (מטלה 2, LLM-writer configs) --
+// "agent" כאן הוא ה-ReAct tool-calling agent, מושג נפרד לגמרי. ראו
+// plans/assignment4-plan.md, "התנגשות שם אמיתית".
+
+export function getAgentLabTools() {
+  return request('/agent-lab/tools');
+}
+
+export function getAgentLabTasks() {
+  return request('/agent-lab/tasks');
+}
+
+/** RAG: קריאת LLM אחת. Agent: כמה קריאות Haiku + שיפוט Sonnet (evaluator-optimizer). */
+export function runAgentLab(payload) {
+  return request('/agent-lab/run', { method: 'POST', body: payload, timeoutMs: LLM_TIMEOUT_MS });
+}
+
+export function getAgentLabConfigs() {
+  return request('/agent-lab/configs');
+}
+
+export function addAgentLabConfig(payload) {
+  return request('/agent-lab/configs', { method: 'POST', body: payload });
+}
+
+export function deleteAgentLabConfig(configId) {
+  return request(`/agent-lab/configs/${encodeURIComponent(configId)}`, { method: 'DELETE' });
+}
+
+export function getAgentLabMatrix() {
+  return request('/agent-lab/matrix');
+}
+
+export function getAgentLabExperiments() {
+  return request('/agent-lab/experiments');
+}
+
+export function getAgentLabAnnotatedTraces() {
+  return request('/agent-lab/annotated-traces');
+}
+
+export function getAgentLabCost() {
+  return request('/agent-lab/cost');
 }

@@ -1,0 +1,14 @@
+.git/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+tax-copilot/web/
+tax-copilot/graphify-out/
+tax-copilot/.pytest_cache/
+tax-copilot/api/data/
+tax-copilot/assignment3/index_custom/
+tax-copilot/.uvicorn.log
+tax-copilot/.vite.log
+tax-copilot/.env
+HomeWork/

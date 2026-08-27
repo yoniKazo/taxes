@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .env
 qa_experiment_run.log
+/.vite.log
 
 HomeWork/
 /plans/

@@ -13,14 +13,18 @@ from fastapi.responses import JSONResponse
 
 from api.db.connection import get_connection, init_db
 from api.db.seed import seed_if_empty
-from api.routes import agents, calculate, rag, rubrics, test_questions, test_runs
+from api.routes import agent_lab, agents, calculate, rag, rubrics, test_questions, test_runs
 from src.tax_refund_calculator import InvalidInputError
 
 app = FastAPI(title="Tax Copilot API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://yonikazo.github.io",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -47,3 +51,4 @@ app.include_router(rubrics.router)
 app.include_router(test_questions.router)
 app.include_router(test_runs.router)
 app.include_router(rag.router)
+app.include_router(agent_lab.router)

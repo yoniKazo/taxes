@@ -14,16 +14,41 @@ from pydantic import BaseModel
 
 
 class JobIn(BaseModel):
-    gross_salary: float
+    gross_salary: float  # ₪, שנתי (הומר לחודשי בתוך routes/calculate.py)
     label: str = ""
+
+
+class ChildIn(BaseModel):
+    age: int
+
+
+class DischargedServiceIn(BaseModel):
+    service_type: Literal["military", "national"]
+    months_since_discharge: int
+    service_length_months: int
+
+
+class NewImmigrantIn(BaseModel):
+    months_since_aliyah: int
+
+
+class AcademicDegreeIn(BaseModel):
+    graduation_year: int
+    program_years: int
 
 
 class CalculateRequest(BaseModel):
     jobs: list[JobIn]
     gender: Literal["male", "female"]
-    extra_credit_points: float = 0.0
+    children: list[ChildIn] = []
+    is_single_parent: bool = False
+    lives_in_eligible_zone: bool = False
+    discharged_service: DischargedServiceIn | None = None
+    new_immigrant: NewImmigrantIn | None = None
+    academic_degree: AcademicDegreeIn | None = None
+    extra_credit_points: float = 0.0  # פולבק ידני, מעבר להערכה האוטומטית מהעובדות שלמעלה
     pension_employee_pct: float = 0.0
-    keren_hishtalmut_monthly: float = 0.0
+    keren_hishtalmut_annual: float = 0.0
     annual_donation: float = 0.0
     include_explanation: bool = True
 
@@ -31,6 +56,8 @@ class CalculateRequest(BaseModel):
 class CalculateResponse(BaseModel):
     combined_gross: float
     job_count: int
+    estimated_credit_points: float
+    total_credit_points: float
     tax_before_credit: float
     tax_after_credit: float
     national_insurance: float
@@ -38,6 +65,14 @@ class CalculateResponse(BaseModel):
     net: float
     pension_tax_savings: float
     keren_hishtalmut_tax_savings: float
+    combined_gross_annual: float
+    tax_before_credit_annual: float
+    tax_after_credit_annual: float
+    national_insurance_annual: float
+    health_tax_annual: float
+    net_annual: float
+    pension_tax_savings_annual: float
+    keren_hishtalmut_tax_savings_annual: float
     donation_credit_annual: float
     explanation: str | None
     explanation_error: str | None = None
@@ -113,6 +148,10 @@ class TestRunRequest(BaseModel):
 class RatingRequest(BaseModel):
     rater: Literal["human"]  # judge is only ever written via /test-runs/{id}/judge
     scores: dict[str, Literal["good", "ok", "bad"]]
+
+
+class JudgeRunRequest(BaseModel):
+    model: str | None = None  # None => falls back to the judge agent's DB default
 
 
 class TestRunListItem(BaseModel):

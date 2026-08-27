@@ -35,9 +35,99 @@ KEREN_HISHTALMUT_DEDUCTIBLE_CAP_MONTHLY = 1571.0
 DONATION_CREDIT_RATE = 0.35
 DONATION_MIN_ANNUAL = 207.0
 
+CURRENT_TAX_YEAR = 2026
+
+# מקור: tax_notes.md §2 — טבלת נקודות זיכוי לפי גיל ילד/הורה (kolzchut.org.il).
+# (mother_points, father_points) לכל שנת גיל/טווח.
+CHILD_CREDIT_POINTS_BY_AGE = {
+    0: (2.5, 2.5),
+    1: (4.5, 4.5),
+    2: (4.5, 4.5),
+    3: (3.5, 3.5),
+    4: (2.5, 2.5),
+    5: (2.5, 2.5),
+    **{age: (2.0, 1.0) for age in range(6, 18)},  # 6-12 ו-13-17 שוות ערך בטבלת המקור
+    18: (0.5, 0.5),
+}
+
+# מקור: tax_notes.md §2 — חייל/ת משוחרר/ת ומסיימי שירות לאומי-אזרחי (kolzchut.org.il).
+# תקף ל-36 חודשים מתום השירות; (min_service_months -> נקודות/חודש).
+DISCHARGED_SOLDIER_DURATION_MONTHS = 36
+DISCHARGED_SOLDIER_THRESHOLDS = {
+    ("military", "male"): [(23, 2.0), (12, 1.0)],
+    ("military", "female"): [(22, 2.0), (12, 1.0)],
+    ("national", "male"): [(24, 2.0), (12, 1.0)],
+    ("national", "female"): [(24, 2.0), (12, 1.0)],
+}
+
+# מקור: tax_notes.md §2 — עולה חדש/קטין חוזר (bshcpa.co.il; ראו הסתייגות מקור בקובץ).
+# תקף ל-54 חודשים מהעלייה; (max_months_in_window, points_in_window, window_length_months).
+NEW_IMMIGRANT_WINDOWS = [
+    (12, 1.0, 12),
+    (30, 3.0, 18),
+    (42, 2.0, 12),
+    (54, 1.0, 12),
+]
+
+# מקור: tax_notes.md §2 — תואר אקדמי/תעודת הנדסאי (kolzchut.org.il).
+ACADEMIC_DEGREE_NEW_RULE_FROM_YEAR = 2023
+ACADEMIC_DEGREE_NEW_RULE_MAX_YEARS = 3
+ACADEMIC_DEGREE_OLD_RULE_MIN_YEAR = 2014
+ACADEMIC_DEGREE_OLD_RULE_MAX_YEAR = 2022
+ACADEMIC_DEGREE_OLD_RULE_WINDOW = (1, 2)
+
 
 class InvalidInputError(ValueError):
     pass
+
+
+def estimate_child_credit_points(age: int, gender: str) -> float:
+    if age not in CHILD_CREDIT_POINTS_BY_AGE:
+        return 0.0
+    mother_points, father_points = CHILD_CREDIT_POINTS_BY_AGE[age]
+    return mother_points if gender == "female" else father_points
+
+
+def estimate_discharged_soldier_points(
+    gender: str,
+    service_type: str,
+    months_since_discharge: int,
+    service_length_months: int,
+) -> float:
+    if not (1 <= months_since_discharge <= DISCHARGED_SOLDIER_DURATION_MONTHS):
+        return 0.0
+    thresholds = DISCHARGED_SOLDIER_THRESHOLDS.get((service_type, gender), [])
+    for min_service_months, points in thresholds:
+        if service_length_months >= min_service_months:
+            return points
+    return 0.0
+
+
+def estimate_new_immigrant_points(months_since_aliyah: int) -> float:
+    if months_since_aliyah <= 0:
+        return 0.0
+    for max_months, points, window_length in NEW_IMMIGRANT_WINDOWS:
+        if months_since_aliyah <= max_months:
+            return points / window_length
+    return 0.0
+
+
+def estimate_academic_degree_points(
+    graduation_year: int, program_years: int, current_year: int = CURRENT_TAX_YEAR
+) -> float:
+    if program_years <= 0:
+        return 0.0
+    years_since_graduation = current_year - graduation_year
+
+    if graduation_year >= ACADEMIC_DEGREE_NEW_RULE_FROM_YEAR:
+        window = min(program_years, ACADEMIC_DEGREE_NEW_RULE_MAX_YEARS)
+        return 1.0 if 1 <= years_since_graduation <= window else 0.0
+
+    if ACADEMIC_DEGREE_OLD_RULE_MIN_YEAR <= graduation_year <= ACADEMIC_DEGREE_OLD_RULE_MAX_YEAR:
+        low, high = ACADEMIC_DEGREE_OLD_RULE_WINDOW
+        return 1.0 if low <= years_since_graduation <= high else 0.0
+
+    return 0.0
 
 
 @dataclass(frozen=True)

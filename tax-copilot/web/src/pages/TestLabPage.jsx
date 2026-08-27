@@ -15,6 +15,9 @@ import RunHistoryPanel from '../components/lab/RunHistoryPanel.jsx';
 import ProgressBar from '../components/ui/ProgressBar.jsx';
 import Panel from '../components/ui/Panel.jsx';
 import PanelPicker from '../components/ui/PanelPicker.jsx';
+import ProcessExplainer from '../components/ui/ProcessExplainer.jsx';
+import { LAB_EXPLAINERS } from '../constants/labExplainers.js';
+import { JUDGE_MODEL_OPTIONS } from '../constants/labModels.js';
 import { useJob } from '../hooks/useJob.js';
 import { usePanelPrefs } from '../hooks/usePanelPrefs.js';
 
@@ -60,6 +63,7 @@ export default function TestLabPage() {
     enabled: selectedRunId != null,
   });
 
+  const [judgeModel, setJudgeModel] = useState(JUDGE_MODEL_OPTIONS[0].value);
   const [compareWith, setCompareWith] = useState(null);
   const compareRun = useQuery({
     queryKey: ['test-run', compareWith],
@@ -68,7 +72,7 @@ export default function TestLabPage() {
   });
 
   const judgeJob = useJob({
-    start: () => runJudgeAsync(selectedRunId),
+    start: () => runJudgeAsync(selectedRunId, judgeModel),
     successMessage: 'השיפוט הסתיים.',
     onDone: () => {
       queryClient.invalidateQueries({ queryKey: ['test-run', selectedRunId] });
@@ -118,10 +122,13 @@ export default function TestLabPage() {
           loading={agents.isPending || questions.isPending}
           error={agents.error?.message ?? questions.error?.message}
         >
+          <ProcessExplainer id="run" {...LAB_EXPLAINERS.run} />
           <RunForm
             agents={agents.data ?? []}
             questions={questions.data ?? []}
             onRunFinished={onRunFinished}
+            judgeModel={judgeModel}
+            onJudgeModelChange={setJudgeModel}
           />
         </Panel>
       ) : null}
@@ -136,14 +143,25 @@ export default function TestLabPage() {
           error={run.error?.message}
           actions={
             <div className="row">
+              <select
+                aria-label="AI שופט"
+                value={judgeModel}
+                onChange={(event) => setJudgeModel(event.target.value)}
+                disabled={judgeJob.running}
+              >
+                {JUDGE_MODEL_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
               <button type="button" onClick={() => judgeJob.start()} disabled={judgeJob.running}>
                 <Gavel size={14} aria-hidden />
                 {judgeJob.running ? 'שופט…' : judged ? 'שפוט את מה שנותר' : 'הפעל judge'}
               </button>
-              <span className="cost-hint">~4 קריאות לשורה</span>
+              <span className="cost-hint">~1 קריאה לשורה</span>
             </div>
           }
         >
+          <ProcessExplainer id="results" {...LAB_EXPLAINERS.results} />
           {judgeJob.running ? (
             <div style={{ marginBlockEnd: 'var(--space-4)' }}>
               <ProgressBar
@@ -170,6 +188,7 @@ export default function TestLabPage() {
 
       {prefs.isVisible('agreement') && selectedRunId != null ? (
         <Panel title="הסכמת human מול judge" icon={Scale} {...panelProps('agreement')}>
+          <ProcessExplainer id="agreement" {...LAB_EXPLAINERS.agreement} />
           <AgreementPanel testRunId={selectedRunId} />
         </Panel>
       ) : null}
@@ -182,6 +201,7 @@ export default function TestLabPage() {
           loading={runs.isPending}
           error={runs.error?.message}
         >
+          <ProcessExplainer id="history" {...LAB_EXPLAINERS.history} />
           <RunHistoryPanel
             runs={runs.data ?? []}
             selectedRunId={selectedRunId}
@@ -200,6 +220,7 @@ export default function TestLabPage() {
           loading={questions.isPending}
           error={questions.error?.message}
         >
+          <ProcessExplainer id="dataset" {...LAB_EXPLAINERS.dataset} />
           <DatasetPanel questions={questions.data ?? []} />
         </Panel>
       ) : null}
@@ -212,6 +233,7 @@ export default function TestLabPage() {
           loading={rubric.isPending}
           error={rubric.error?.message}
         >
+          <ProcessExplainer id="rubric" {...LAB_EXPLAINERS.rubric} />
           <RubricPanel rubric={rubric.data} />
         </Panel>
       ) : null}

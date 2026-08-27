@@ -4,14 +4,25 @@
 כלי Python דטרמיניסטי (**ללא LLM**) שמקבל פרטי שכר של שכיר ומחזיר פירוט מס הכנסה, ביטוח לאומי, מס בריאות ונטו משוער — לפי הנתונים ב-`data/tax_notes.md` (שנת מס 2026, שכירים בלבד). זהו הבסיס הראשון ל"תוצאת החזר/חיסכון" של Tax Copilot; שכבת הסבר טבעי מבוססת-LLM על התוצאה היא feature עתידי נפרד ואינה כלולה כאן.
 
 ## קלט
+
+`src/tax_refund_calculator.calculate()` עצמו נשאר **חודשי** (ראו "הערת מימוש" למטה) — הטבלה הבאה מתארת את חוזה ה-API (`api/schemas.CalculateRequest`), שהוא השכבה שמול ה-UI ומקבלת קלט **שנתי**. `api/routes/calculate.py` הוא נקודת ההמרה היחידה בין השניים.
+
 | שם | סוג | חובה/ברירת מחדל |
 |---|---|---|
-| `gross_salary` | ₪, חודשי | חובה |
+| `jobs[].gross_salary` | ₪, **שנתי** | חובה |
 | `gender` | `"male"` / `"female"` — קובע נקודות זיכוי בסיס (2.25 / 2.75) | חובה |
-| `extra_credit_points` | נקודות זיכוי נוספות מעבר לבסיס | ברירת מחדל 0 |
+| `children[].age` | רשימת גילאי ילדים — כל גיל מתורגם לנקודות זיכוי לפי הטבלה ב-`data/tax_notes.md` §2 | ברירת מחדל [] |
+| `is_single_parent` | הורה יחיד → +1 נקודה | ברירת מחדל false |
+| `lives_in_eligible_zone` | אזור עדיפות לאומית/יישוב ספר → +1 נקודה | ברירת מחדל false |
+| `discharged_service` | חייל/ת משוחרר/ת/שירות לאומי — `service_type`, `months_since_discharge`, `service_length_months` | ברירת מחדל None |
+| `new_immigrant` | עולה חדש/קטין חוזר — `months_since_aliyah` | ברירת מחדל None |
+| `academic_degree` | תואר/תעודה — `graduation_year`, `program_years` | ברירת מחדל None |
+| `extra_credit_points` | נקודות זיכוי נוספות **ידניות**, מעבר להערכה האוטומטית מהעובדות שלמעלה | ברירת מחדל 0 |
 | `pension_employee_pct` | אחוז הפרשת עובד לפנסיה מוכרת | ברירת מחדל 0 |
-| `keren_hishtalmut_monthly` | הפקדת עובד חודשית לקרן השתלמות (₪) | ברירת מחדל 0 |
+| `keren_hishtalmut_annual` | הפקדת עובד **שנתית** לקרן השתלמות (₪) | ברירת מחדל 0 |
 | `annual_donation` | תרומה שנתית למוסד מוכר סעיף 46 (₪) | ברירת מחדל 0, מדווח כערך שנתי נפרד |
+
+הפלט (`CalculateResponse`) כולל לכל שדה כספי חודשי גם תאום `_annual` (×12), מלבד `donation_credit_annual` שכבר שנתי מטבעו, וגם `estimated_credit_points`/`total_credit_points` לשקיפות על החישוב.
 
 ## Acceptance criteria (EARS)
 

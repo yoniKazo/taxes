@@ -1,0 +1,9 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+baseline קפוא: commit 39692df
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 5361.84it/s]
+  mh1 run 1/1 (29.3s): rag=bad/answered | agent=good/answered
+  nt1 run 1/1 (64.6s): rag=n/a/n/a | agent=good/answered
+  tf1 run 1/1 (17.6s): rag=n/a/n/a | agent=good/refused
+  s2 run 1/1 (46.2s): rag=good/answered | agent=good/answered
+
+8 שורות נכתבו ל-C:\Repo\Taxes\tax-copilot\assignment4\data\dryrun_matrix.xlsx

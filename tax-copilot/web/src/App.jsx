@@ -1,15 +1,23 @@
-import { Calculator, FlaskConical, Monitor, Moon, Search, Sun } from 'lucide-react';
+import {
+  Bot, Calculator, FlaskConical, Info, Monitor, Moon, Search, Sun,
+} from 'lucide-react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 
 import { useTheme } from './hooks/useTheme.js';
+import AboutPage from './pages/AboutPage.jsx';
+import AgentLabPage from './pages/AgentLabPage.jsx';
 import CalculatorPage from './pages/CalculatorPage.jsx';
 import RagLabPage from './pages/RagLabPage.jsx';
 import TestLabPage from './pages/TestLabPage.jsx';
 
+// "מעבדת Agent" (מטלה 4, ReAct tool-calling agent) היא מושג נפרד לגמרי מ-"בדיקות AI"
+// (מטלה 2, קונפיגורציות LLM-writer) -- ראו plans/assignment4-plan.md.
 const NAV = [
   { to: '/calculator', label: 'מחשבון', icon: Calculator },
   { to: '/lab', label: 'בדיקות AI', icon: FlaskConical },
   { to: '/rag', label: 'מעבדת RAG', icon: Search },
+  { to: '/agent-lab', label: 'מעבדת Agent', icon: Bot },
+  { to: '/about', label: 'מאחורי הקלעים', icon: Info },
 ];
 
 const THEME_ICONS = { system: Monitor, light: Sun, dark: Moon };
@@ -78,6 +86,8 @@ export default function App() {
             <Route path="/calculator" element={<CalculatorPage />} />
             <Route path="/lab" element={<TestLabPage />} />
             <Route path="/rag" element={<RagLabPage />} />
+            <Route path="/agent-lab" element={<AgentLabPage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="*" element={<Navigate to="/calculator" replace />} />
           </Routes>
         </main>

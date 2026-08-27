@@ -9,6 +9,7 @@
 | `agent_name` (ל-`POST /test-runs`) | `"explainer"` \| `"qa"` \| `"judge"` | חובה |
 | `model`, `temperature`, `system_prompt` (ל-`POST /test-runs`) | override אופציונלי מעל ברירות המחדל של ה-agent | ברירת מחדל: `None` → נופל לברירת המחדל של ה-agent מה-DB |
 | `question_ids` (ל-`POST /test-runs`) | רשימת מזהי `test_questions` | חובה |
+| `model` (ל-`POST /test-runs/{id}/judge`) | override אופציונלי מעל ברירת המחדל של agent ה-judge | ברירת מחדל: `None` → נופל לברירת המחדל של ה-agent מה-DB |
 | `scores` (ל-`POST /llm-calls/{id}/ratings`) | `dict[criterion, "good"\|"ok"\|"bad"]` | חובה, `rater="human"` בלבד |
 
 ## Acceptance criteria (EARS)
@@ -27,7 +28,7 @@
 - תמיכה בכמה datasets פעילים בו-זמנית ב-UI (v1 עובד על dataset אחד פעיל, `tax_qa_v1`).
 - בדיקת agent `explainer` באותו מנגנון (דורש דאטהסט מסוג תרחישי-חישוב, לא נבנה כאן — התשתית תומכת בזה כש-`agent_name` גנרי בכל מקום).
 - הוספת/עריכת agents דרך ה-UI (`POST /agents`) — שלושת ה-agents קבועים דרך seed/קוד בלבד ב-v1.
-- override של מודל/טמפרטורה/פרומפט לקריאת ה-`judge` עצמה דרך `/test-runs/{id}/judge` — קבועים לברירת המחדל של ה-agent.
+- override של טמפרטורה/פרומפט לקריאת ה-`judge` עצמה דרך `/test-runs/{id}/judge` — קבועים לברירת המחדל של ה-agent. **מודל** כן ניתן ל-override (`JudgeRunRequest.model`, אותה סמנטיקת `None` → נופל לברירת המחדל), כדי לאפשר לבחור בין Gemini ל-Anthropic Claude Haiku גם עבור ה-judge, לא רק עבור ה-writer.
 
 ## הערות עיצוב (הפניה למקור)
 - גרסאות רוברייק: `PUT /rubrics/active` יוצר שורת `rubrics` חדשה (ולא עורך קיימת), כדי ש-`test_runs.rubric_id` הישנים ימשיכו להצביע על הרוברייק שבאמת הייתה בשימוש בזמן ההרצה. ראו `api/db/schema.sql`.

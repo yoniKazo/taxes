@@ -47,6 +47,7 @@ from api.schemas import (
     AgreementResponse,
     CriterionJudgeVerdict,
     Disagreement,
+    JudgeRunRequest,
     RatingRequest,
     TestRunDetail,
     TestRunListItem,
@@ -372,15 +373,21 @@ def submit_rating(
 
 
 @router.post("/test-runs/{run_id}/judge")
-def run_judge(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> dict:
+def run_judge(
+    run_id: int, payload: JudgeRunRequest | None = None, conn: sqlite3.Connection = Depends(get_db)
+) -> dict:
     """Blocking path, unchanged."""
-    return _run_judge(run_id, conn, _noop_report, _never_cancel)
+    model_override = payload.model if payload is not None else None
+    return _run_judge(run_id, conn, _noop_report, _never_cancel, model_override)
 
 
-def _run_judge(run_id: int, conn: sqlite3.Connection, report, should_cancel) -> dict:
+def _run_judge(
+    run_id: int, conn: sqlite3.Connection, report, should_cancel, model_override: str | None = None
+) -> dict:
     run = _get_test_run(conn, run_id)
 
     judge_row = get_agent(conn, "judge")
+    model = model_override if model_override is not None else judge_row["default_model"]
 
     criteria_rows = get_rubric_criteria(conn, run["rubric_id"])
     rubric_row = conn.execute("SELECT * FROM rubrics WHERE id = ?", (run["rubric_id"],)).fetchone()
@@ -416,14 +423,14 @@ def _run_judge(run_id: int, conn: sqlite3.Connection, report, should_cancel) -> 
                 question=call_row["question"],
                 answer=call_row["response"],
                 rubric_text=rubric_text,
-                model=judge_row["default_model"],
+                model=model,
                 temperature=judge_row["default_temperature"],
             )
         except AgentCallError as e:
             log_llm_call(
                 conn,
                 agent_name="judge",
-                model=judge_row["default_model"],
+                model=model,
                 temperature=judge_row["default_temperature"],
                 system_prompt=judge_row["default_system_prompt"],
                 question=f"שיפוט llm_call #{call_row['id']}: {call_row['question']}",
@@ -586,13 +593,16 @@ def create_test_run_async(
 
 
 @router.post("/test-runs/{run_id}/judge/async")
-def run_judge_async(run_id: int, conn: sqlite3.Connection = Depends(get_db)) -> dict:
+def run_judge_async(
+    run_id: int, payload: JudgeRunRequest | None = None, conn: sqlite3.Connection = Depends(get_db)
+) -> dict:
     _get_test_run(conn, run_id)
+    model_override = payload.model if payload is not None else None
 
     def work(job_conn, report, should_cancel):
         # _run_judge only picks up calls with no judge final_score yet, so a
         # cancelled job resumes where it stopped instead of paying twice.
-        return _run_judge(run_id, job_conn, report, should_cancel)
+        return _run_judge(run_id, job_conn, report, should_cancel, model_override)
 
     return jobs.submit("judge", _with_own_connection(work)).to_dict()
 

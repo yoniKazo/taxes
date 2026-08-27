@@ -3,17 +3,22 @@ import { Play, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { createTestRunAsync } from '../../api/client.js';
+import { JUDGE_MODEL_OPTIONS, WRITER_MODEL_OPTIONS } from '../../constants/labModels.js';
 import { useJob } from '../../hooks/useJob.js';
 import ProgressBar from '../ui/ProgressBar.jsx';
 
 // v1 always runs the qa call shape, so offering other agents would produce rows
-// whose bookkeeping says one thing and whose prompt shape says another.
+// whose bookkeeping says one thing and whose prompt shape says another. There's
+// only ever one entry, so it's picked automatically below rather than exposed
+// as a dropdown.
 const RUNNABLE_AGENTS = new Set(['qa']);
 
 // Each question is one throttled call; the server sleeps 4s between them.
 const SECONDS_PER_QUESTION = 5;
 
-export default function RunForm({ agents, questions, onRunFinished }) {
+export default function RunForm({
+  agents, questions, onRunFinished, judgeModel, onJudgeModelChange,
+}) {
   const queryClient = useQueryClient();
 
   // useMemo, not a ref latch: this used to be recomputed on every render while
@@ -25,6 +30,7 @@ export default function RunForm({ agents, questions, onRunFinished }) {
   );
 
   const [agentName, setAgentName] = useState('');
+  const [model, setModel] = useState(WRITER_MODEL_OPTIONS[0].value);
   const [temperature, setTemperature] = useState(0.7);
   const [systemPrompt, setSystemPrompt] = useState('');
   const [label, setLabel] = useState('');
@@ -48,7 +54,7 @@ export default function RunForm({ agents, questions, onRunFinished }) {
   const job = useJob({
     start: () => createTestRunAsync({
       agent_name: agentName,
-      model: null,
+      model,
       temperature,
       system_prompt: systemPrompt,
       question_ids: [...selectedIds],
@@ -102,21 +108,10 @@ export default function RunForm({ agents, questions, onRunFinished }) {
     >
       <div className="field-grid">
         <div>
-          <label htmlFor="run-agent">Agent</label>
-          <select
-            id="run-agent"
-            value={agentName}
-            onChange={(event) => {
-              const agent = runnableAgents.find((a) => a.name === event.target.value);
-              setAgentName(event.target.value);
-              if (agent) {
-                setTemperature(agent.default_temperature);
-                setSystemPrompt(agent.default_system_prompt);
-              }
-            }}
-          >
-            {runnableAgents.map((agent) => (
-              <option key={agent.name} value={agent.name}>{agent.name}</option>
+          <label htmlFor="run-model">AI כותב</label>
+          <select id="run-model" value={model} onChange={(event) => setModel(event.target.value)}>
+            {WRITER_MODEL_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
           {runnableAgents.length === 0 ? (
@@ -124,6 +119,20 @@ export default function RunForm({ agents, questions, onRunFinished }) {
               לא נטענו agents מהשרת.
             </div>
           ) : null}
+        </div>
+
+        <div>
+          <label htmlFor="run-judge-model">AI שופט</label>
+          <select
+            id="run-judge-model"
+            value={judgeModel}
+            onChange={(event) => onJudgeModelChange(event.target.value)}
+          >
+            {JUDGE_MODEL_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+          <div className="field-hint">משמש כשמפעילים judge על תוצאות הריצה</div>
         </div>
 
         <div>
