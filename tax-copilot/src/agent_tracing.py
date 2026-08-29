@@ -58,6 +58,13 @@ class JsonlTracer:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
+    def reset(self) -> None:
+        """מוחק קובץ trace קיים לפני פס חדש על אותה משימה. בלי זה ריצה חוזרת
+        (checkpoint שנמחק, --no-resume, סשן חדש) מערימה בלוקי-סיכום ישנים על
+        חדשים באותו קובץ, עם אותם מספרי run -- ואי אפשר לדעת איזה בלוק הוא
+        התוצאה שב-checkpoint. ראו assignment4_eval_runner.run_matrix."""
+        self.path.unlink(missing_ok=True)
+
     def write_step(self, record: StepRecord) -> None:
         with open(self.path, "a", encoding="utf-8") as f:
             f.write(json.dumps(asdict(record), ensure_ascii=False) + "\n")

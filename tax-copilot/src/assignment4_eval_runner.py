@@ -71,6 +71,13 @@ def score_task_success(row: pd.Series, answer: str, tool_calls: int, terminal_st
     return verdict.verdict, verdict.explanation
 
 
+# baseline A3 קפוא: מחולל gemini-flash-lite-latest, שופט faithfulness gemini-3.1-flash-lite
+# (llm.GENERATOR_MODEL / llm.JUDGE_MODEL). נרשם בכל שורה כדי שלא יחזור לקח judge_version
+# ממטלה 3 -- שורת תוצאה בלי שם המודל שהפיק אותה אינה בת-השוואה.
+RAG_GEN_MODEL = "gemini-flash-lite-latest"
+RAG_JUDGE_MODEL = "gemini-3.1-flash-lite"
+
+
 def run_rag_row(row: pd.Series, run_idx: int, vectorstore) -> dict:
     if row["type"] in ("no_tool", "tool_fails"):
         return {
@@ -79,6 +86,7 @@ def run_rag_row(row: pd.Series, run_idx: int, vectorstore) -> dict:
             "faithfulness_verdict": "n/a",
             "faithfulness_explanation": "structurally meaningless for RAG -- no tool concept",
             "latency_ms": None, "input_tokens": None, "output_tokens": None,
+            "agent_model": "n/a", "judge_model": "n/a",
         }
 
     parsed, meta = answer_with_rag_instrumented(row["task"], vectorstore=vectorstore)
@@ -93,6 +101,7 @@ def run_rag_row(row: pd.Series, run_idx: int, vectorstore) -> dict:
         "faithfulness_verdict": faith.verdict, "faithfulness_explanation": faith.explanation,
         "latency_ms": meta["latency_ms"], "input_tokens": meta["input_tokens"],
         "output_tokens": meta["output_tokens"],
+        "agent_model": RAG_GEN_MODEL, "judge_model": RAG_JUDGE_MODEL,
     }
 
 
@@ -124,6 +133,7 @@ def run_agent_row(row: pd.Series, run_idx: int, tracer: JsonlTracer, *,
         "faithfulness_verdict": faith_verdict, "faithfulness_explanation": faith_expl,
         "latency_ms": summary.total_wall_ms, "input_tokens": summary.total_input_tokens,
         "output_tokens": summary.total_output_tokens,
+        "agent_model": agent_model, "judge_model": judge_model,
     }
 
 
@@ -172,6 +182,10 @@ def run_matrix(n_runs: int = N_RUNS, task_filter: list[str] | None = None,
         answerable = bool(task_row["answerable"]) if not isinstance(task_row["answerable"], str) \
             else task_row["answerable"].strip().lower() == "true"
         tracer = JsonlTracer(os.path.join(TRACE_DIR, f"{task_id}.jsonl"))
+        # פס חדש על המשימה (run 1 שרץ בפועל, לא מ-checkpoint) -> קובץ trace נקי.
+        # בלי זה בלוקי-סיכום מסשנים קודמים נערמים על החדשים עם אותם מספרי run.
+        if "agent" in configs and (task_id, 1, "agent") not in done_keys:
+            tracer.reset()
         for run_idx in range(1, n_runs + 1):
             base = {
                 "task_id": task_id, "task": task_row["task"], "type": task_row["type"],

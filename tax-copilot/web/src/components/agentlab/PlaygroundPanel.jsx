@@ -1,6 +1,8 @@
 import { Bot, Play, Search, Wrench } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import { TOOL_ABLATION } from '../../constants/agentLabExplainers.js';
+
 const TOOL_ICONS = { search_tax_corpus: Search, calculator: Wrench, calculate_tax_refund: Wrench };
 
 export default function PlaygroundPanel({
@@ -126,6 +128,25 @@ export default function PlaygroundPanel({
               );
             })}
           </div>
+
+          <details className="panel-note info" style={{ marginBlockStart: 'var(--space-3)' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+              מה קורה בתהליך עם כל הכלים, ומה נשבר כשכלי חסר
+            </summary>
+            <p style={{ marginBlockStart: 'var(--space-2)' }}>{TOOL_ABLATION.all}</p>
+            <p className="muted">{TOOL_ABLATION.note}</p>
+            <div className="checklist" style={{ marginBlockStart: 'var(--space-2)' }}>
+              {TOOL_ABLATION.tools.map((t) => (
+                <div key={t.name} className="checklist-row" style={{ display: 'block' }}>
+                  <div>
+                    <strong>בלי {t.name}</strong>
+                    {enabledTools.has(t.name) ? null : <span className="muted"> · כרגע מכובה</span>}
+                  </div>
+                  <div className="muted">{t.without}</div>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       ) : null}
 
